@@ -7,9 +7,10 @@ import IonIcons from 'react-native-vector-icons/Ionicons'
 import { useOrder } from '../context/OrderContext'
 import { useNavigation } from '@react-navigation/native'
 import { useEffect } from 'react'
-import Shifts from '../tabs/Shifts'
+
 import Earnings from '../tabs/Earnings'
 import Wallet from 'react-native-vector-icons/SimpleLineIcons'
+import Orders from '../tabs/Orders'
 const Tab = createBottomTabNavigator()
 
 const Dashboard = () => {
@@ -70,7 +71,7 @@ const Dashboard = () => {
                     </View>
                 )
             }} />
-             <Tab.Screen name='My Shifts' component={Shifts} options={{
+             <Tab.Screen name='My Orders' component={Orders} options={{
                 headerShown: false,
                 tabBarIcon: ({ size, color, focused }) => (
                     <View style={{

@@ -3,15 +3,54 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import { useNavigation } from '@react-navigation/native'
 import Entypo from 'react-native-vector-icons/Entypo'
 import Header from '../components/common/Header'
+import apiService from '../services/ApiService'
+import { useSelector } from 'react-redux'
+import { useEffect, useState } from 'react'
+import CompletedDoc from '../components/info/CompletedDocs'
+import PendingDoc from '../components/info/PendingDoc'
 const PersonalDocs = () => {
+const navigation = useNavigation()
+const { token } = useSelector((state) => state.auth);
+const [pending, setPending] = useState([]);
+const [approved, setApproved] = useState([]);
+
+    const GetInfo=async()=>{
+    try {
+        const res= await apiService('/api/deliveryBoy/getPersonalDocsStatus', 'GET',null,{
+            Authorization: `Bearer ${token}`,
+        });
+        console.log("res",res.data.data);
+        setPending(res.data.data.pendingDocuments);
+        setApproved(res.data.data.completedDocuments);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        
+    }
+}
+useEffect(()=>{
+    GetInfo();
+},[])
     return (
         <View style={styles.container}>
             <Header title={'Upload Personal Documents'} showicon={true}/>
-            <View style={{ padding: "5%", marginTop: "5%" }}>
-                <DocumentItem title={"Aadhar Card"} href="upload-adhar" />
+            <View style={{paddingHorizontal: 16}}>
+            <View style={{  marginTop: "5%" }}>
+                {pending.map((doc, index) => (
+                    <PendingDoc key={index} title={doc} href={doc.toLowerCase().replace(/ /g, "-")} />
+                ))}
+                {/* <DocumentItem title={"Aadhar Card"} href="upload-adhar" />
                 <DocumentItem title={"PAN Card"} href="upload-pan" />
-                <DocumentItem title={"Driving License"} href="upload-driving-license" />
+                <DocumentItem title={"Driving License"} href="upload-driving-license" /> */}
             </View>
+            <View>
+                        <Text style={{ color: "#000", fontFamily: "OpenSans-Medium", fontSize: 20, lineHeight: 27 }}>Completed Docs</Text>
+                    </View>
+             <View style={{ marginTop: 20 }}>
+                        {approved.map((doc, index) => (
+                            <CompletedDoc key={index} title={doc} href={doc.toLowerCase().replace(/ /g, "-")} navigation={navigation}/>
+                        ))}
+                    </View>
+                    </View>
         </View>
     )
 }

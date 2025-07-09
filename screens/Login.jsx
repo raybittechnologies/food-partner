@@ -1,9 +1,37 @@
 import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 const { height, width } = Dimensions.get("window")
 import { useNavigation } from '@react-navigation/native'
+import apiService from '../services/ApiService';
+import { useState } from 'react';
 
 const Login = () => {
   const navigation = useNavigation()
+  const [phoneNumber, setPhoneNumber] = useState(null);
+
+const SendOtp= async () => {
+  console.log("Phone Number:", phoneNumber);
+  // navigation.replace("otp", { phoneNumber });
+  if (!phoneNumber || phoneNumber.length < 10) {
+    alert("Please enter a valid phone number");
+    return;
+  }
+try {
+  const response = await apiService('/api/deliveryBoy/deliverySendOtp','POST', { phone_no:phoneNumber });
+  if (response.data) {
+    console.log("OTP sent successfully:", response.data);
+    navigation.replace("otp", { phoneNumber });
+  } else {
+    console.error("Failed to send OTP:", response.error);
+    alert("Failed to send OTP. Please try again later.");
+  }
+} catch (error) {
+  console.error("Error sending OTP:", error);
+  alert("Failed to send OTP. Please try again later.");
+  
+}
+}
+
+
   return (
     <KeyboardAvoidingView
       behavior={null}
@@ -27,6 +55,7 @@ const Login = () => {
           >
             <TextInput
               keyboardType='numeric'
+              onChangeText={setPhoneNumber}
               placeholderTextColor={"white"}
               style={{
                 width: width * 0.90,
@@ -39,11 +68,12 @@ const Login = () => {
                 marginTop: 10,
                 fontSize: 16,
                 fontFamily: "OpenSans-Regular",
+                color: "white"
               }}
               placeholder='Enter your mobile number' />
           </View>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate("otp")} style={{ backgroundColor: "#FA4A0C", height: height * 0.075, width: "70%", borderRadius: 10, display: "flex", justifyContent: "center", alignItems: "center", marginTop: height * 0.035 }}>
+        <TouchableOpacity onPress={SendOtp} style={{ backgroundColor: "#FA4A0C", height: height * 0.075, width: "70%", borderRadius: 10, display: "flex", justifyContent: "center", alignItems: "center", marginTop: height * 0.035 }}>
           <Text style={{
             fontFamily: "OpenSans-Medium",
             fontSize: 32,

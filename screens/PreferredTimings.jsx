@@ -4,10 +4,42 @@ import { useNavigation } from '@react-navigation/native'
 import RadioButton from 'react-native-radio-button'
 import { useState } from 'react'
 import Header from '../components/common/Header'
+import { useSelector } from 'react-redux'
+import apiService from '../services/ApiService'
 
 const PreferredTimings = () => {
+    const [loading, setLoading] = useState(false)
+    const { token } = useSelector((state) => state.auth);
     const [workPref, setWorkPref] = useState(null)
     const navigation = useNavigation()
+
+
+const handlecontinue = async () => {
+    if (!workPref) {
+        alert("Please select your preferred work timings");
+        return;
+    }
+   try {
+    const response =await apiService('/api/deliveryBoy/workUpdate', 'PATCH', { type: workPref }, {
+        Authorization: `Bearer ${token}`,
+    });
+    if (response.data.status === "success") {
+        setLoading(false);
+        console.log("Work preference updated successfully:", response.data);
+        alert("Your work preference has been saved successfully!");
+        
+    } else {
+        alert("Failed to save your preferences. Please try again later.");
+    }
+   } catch (error) {
+       console.error("Error in handlecontinue:", error);
+       alert("An error occurred while saving your preferences. Please try again later.");
+    
+   }finally {
+       setLoading(false);
+   }
+
+}
     return (
         <View style={styles.container}>
             <Header title={"Select your preferred work Timings"} showicon={true}/>
@@ -31,25 +63,28 @@ const PreferredTimings = () => {
             <View style={{ marginTop: "10%" }}>
                 <TimingCard
                     heading={"Full Time | All days"}
+                    data={'full_time'}
                     secondaryHeading={"6 days a week"}
                     workPref={workPref}
                     setWorkPref={setWorkPref}
                 />
                 <TimingCard
                     heading={"Part Time | 4-6 hours"}
+                    data={'part_time'}
                     secondaryHeading={"6 days a week"}
                     workPref={workPref}
                     setWorkPref={setWorkPref}
                 />
                 <TimingCard
                     heading={"Part Time | Weekends Only"}
+                    data={'weekends'}
                     secondaryHeading={"Fri, Sat, Sun."}
                     workPref={workPref}
                     setWorkPref={setWorkPref}
                 />
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate("vehicle-selection")} style={{ marginTop: "15%", width: "90%", height: 64, marginHorizontal: "auto", backgroundColor: "#FA4A0C", padding: 10, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ color: "#fff", fontSize: 24, fontFamily: "OpenSans-Regular" }}>Continue</Text>
+            <TouchableOpacity onPress={handlecontinue} style={{ marginTop: "15%", width: "90%", height: 64, marginHorizontal: "auto", backgroundColor: "#FA4A0C", padding: 10, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {loading ? (<ActivityIndicator size={"small"} color={"#fff"} />) : (<Text style={{ color: "#fff", fontSize: 24, fontFamily: "OpenSans-Regular" }}>Continue</Text>)}
             </TouchableOpacity>
         </View>
     )
@@ -67,7 +102,7 @@ const styles = StyleSheet.create({
 
 
 
-const TimingCard = ({ heading, secondaryHeading, workPref, setWorkPref }) => {
+const TimingCard = ({ heading, secondaryHeading, workPref, setWorkPref,data }) => {
 
     return (
         <View style={{
@@ -85,10 +120,10 @@ const TimingCard = ({ heading, secondaryHeading, workPref, setWorkPref }) => {
                 <View>
                     <RadioButton
                         animation={'bounceIn'}
-                        isSelected={heading === workPref}
-                        onPress={() => setWorkPref(heading)}
+                        isSelected={data === workPref}
+                        onPress={() => setWorkPref(data)}
                         size={8}
-                        innerColor={heading === workPref ? "#FA4A0C" : "#fff"}
+                        innerColor={data === workPref ? "#FA4A0C" : "#fff"}
                         outerColor={"#000"}
                     />
                 </View>

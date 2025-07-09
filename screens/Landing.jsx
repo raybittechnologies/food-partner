@@ -69,7 +69,7 @@ const BottomContainer = () => {
   return (
     <View style={styles.bottomContainer}>
       <TouchableOpacity
-        onPress={() => navigation.navigate('login')}
+        onPress={() => navigation.replace('login')}
         style={{
           backgroundColor: '#FA4A0C',
           height: height * 0.075,

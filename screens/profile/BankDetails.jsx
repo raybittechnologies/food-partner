@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const Shifts = () => {
+const BankDetails = () => {
   return (
     <View>
-      <Text>Shifts</Text>
+      <Text>BankDetails</Text>
     </View>
   )
 }
 
-export default Shifts
+export default BankDetails
 
 const styles = StyleSheet.create({})

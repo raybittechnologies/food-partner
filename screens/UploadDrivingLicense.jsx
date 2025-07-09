@@ -1,24 +1,66 @@
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { useNavigation } from '@react-navigation/native'
 import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-import { useState } from 'react'
-import ReactNativeModal from 'react-native-modal'
 import Header from '../components/common/Header'
+import { useSelector } from 'react-redux'
+import { useState } from 'react'
+import useImagePicker from '../components/hooks/useImagePicker'
+import apiService from '../services/ApiService'
 
-const UploadDrivingLicense = () => {
-    const [isOpen, setIsOpen] = useState(false)
-    const navigation = useNavigation()
-    const handleSubmit = () => {
-        setIsOpen(false)
-       navigation.navigate("registration-complete")
+
+const UploadDrivingLicence = () => {
+    const [loading, setLoading] = useState(false);
+        const { token } = useSelector((state) => state.auth);
+     const pickImage = useImagePicker();
+  const [DlFront, setDlFront] = useState(null);
+  const [DlBack, setDlBack] = useState(null);
+const navigation = useNavigation()
+
+const handleSubmit = async() => {
+
+    if (!DlFront || !DlBack) {
+        alert("Please upload both front and back images of your Driving Licence card.");
+        return;
     }
+try {
+    const formData = new FormData();
+    formData.append('dl_front', {
+        uri: DlFront,
+        name: 'PanFront.jpg',
+        type: 'image/jpeg',
+    });
+    formData.append('dl_back', {
+        uri: DlBack,
+        name: 'PanBack.jpg',
+        type: 'image/jpeg',
+    });
+    console.log("Form Data:", formData);
+    setLoading(true);
+    const response = await apiService('/api/deliveryBoy/dlUpdate', 'PATCH', formData, {
+            Authorization: `Bearer ${token}`,
+    });
+   if(response.data.status === "success") {
+    setLoading(false);
+    console.log("DL  submitted successfully:", response);
+    alert("DL submitted successfully!");
+    navigation.goBack();
+   }
+} catch (error) {
+    console.error("Error submitting DL:", error);
+    alert("Failed to submit Dl card. Please try again later.");
+    
+}finally{
+    setLoading(false);
+}
+
+}
     return (
         <View style={styles.container}>
-            <Header showicon={true} title={'Upload Driving License'}/>
-            <ScrollView style={{ marginBottom: 10 }}>
-                <View style={{ padding: "5%", borderStyle: "dashed", borderBottomColor: "#D6D6D6", borderBottomWidth: 1, }}>
+            <Header showicon={true} title={'Upload Driving Licenece '}/>
+            <ScrollView style={{ marginBottom: 10 }} showsVerticalScrollIndicator={false}>
+                <View style={{ padding: "5%", borderStyle: "dashed", borderBottomColor: "#D6D6D6", borderBottomWidth: 1 }}>
                     <Text
                         style={{
                             fontSize: 16,
@@ -34,42 +76,18 @@ const UploadDrivingLicense = () => {
                         below for quicker verification.
                     </Text>
                 </View>
-                <LicenseUpload />
-                <UploadedLicense />
-                <TouchableOpacity onPress={() => setIsOpen(pre => !pre)} style={{ marginVertical: "10%", backgroundColor: "#FA4A0C", borderRadius: 10, height: 50, display: "flex", justifyContent: "center", alignItems: "center", width: "80%", marginHorizontal: "auto" }}>
-                    <Text style={{ color: "#fff", fontSize: 16, fontFamily: "OpenSans-Medium", textAlign: "center", }}>Submit</Text>
+                <DLUpload pickImage={pickImage} setDlFront={setDlFront} DlFront={DlFront}/>
+                <UploadedDlCard setDlBack={setDlBack} pickImage={pickImage} DlBack={DlBack} />
+                <TouchableOpacity onPress={handleSubmit} style={{ marginVertical: "10%", backgroundColor: "#FA4A0C", borderRadius: 10, height: 50, display: "flex", justifyContent: "center", alignItems: "center", width: "80%", marginHorizontal: "auto" }}>
+                    {loading ? (<ActivityIndicator size="small" color="#fff" />) : <Text style={{ color: "#fff", fontSize: 16, fontFamily: "OpenSans-Medium", textAlign: "center", }}>Submit</Text>
+}
                 </TouchableOpacity>
-                <ReactNativeModal
-                    isVisible={isOpen}
-                    onBackdropPress={() => setIsOpen(pre => !pre)}
-                    style={{ flex: 1 }}
-                    animationIn={"bounceInUp"}
-                    animationInTiming={1000}
-                    animationOut={"bounceOutDown"}
-                    animationOutTiming={1000}
-                >
-                    <View style={{ backgroundColor: "#fff", height: 200, width: "90%", marginHorizontal: "auto", borderRadius: 20, padding: "5%" }}>
-                        <Text
-                            style={{
-                                fontFamily: "OpenSans-Regular",
-                                fontSize: 14,
-                            }}
-                        >
-                            Thank You for submiting documents we
-                            will review the uploaded documents and
-                            revert back to you soon!
-                        </Text>
-                        <TouchableOpacity onPress={handleSubmit} style={{ marginVertical: "15%", backgroundColor: "#FA4A0C", borderRadius: 10, height: 50, display: "flex", justifyContent: "center", alignItems: "center", width: "50%", marginHorizontal: "auto" }}>
-                            <Text style={{ color: "#fff", fontSize: 16, fontFamily: "OpenSans-Medium", textAlign: "center", }}>Submit</Text>
-                        </TouchableOpacity>
-                    </View>
-                </ReactNativeModal>
             </ScrollView>
         </View>
     )
 }
 
-export default UploadDrivingLicense
+export default UploadDrivingLicence
 
 const styles = StyleSheet.create({
     container: {
@@ -80,7 +98,7 @@ const styles = StyleSheet.create({
 
 
 
-const LicenseUpload = () => {
+const DLUpload = ({pickImage, setDlFront, DlFront}) => {
     return (
         <View style={{ marginTop: "10%", padding: "5%", width: "90%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
             <View>
@@ -90,10 +108,16 @@ const LicenseUpload = () => {
                         fontSize: 16
                     }}
                 >Your name and photo Should be clearly
-                    visible on the front of your Driving License.
+                    visible on the front of your DL.
                 </Text>
+                      {DlFront && (
+        <Image
+          source={{ uri: DlFront }}
+          style={{ width: "100%", height: 200, marginTop: 20, borderRadius: 10 }}
+        />
+      )}
             </View>
-            <View style={{ marginTop: "40%" }}>
+            <View style={{ marginTop: "10%" }}>
                 <TouchableOpacity style={{
                     width: "90%",
                     marginHorizontal: "auto",
@@ -106,7 +130,9 @@ const LicenseUpload = () => {
                     alignItems: "center",
                     gap: 10,
                     justifyContent: "center"
-                }}>
+                }}
+                onPress={() => pickImage(setDlFront)}
+                >
                     <Entypo name="image" size={20} color="#FA4A0C" />
                     <Text style={{
                         fontFamily: "OpenSans-Regular",
@@ -119,28 +145,26 @@ const LicenseUpload = () => {
     )
 }
 
-const UploadedLicense = () => {
+const UploadedDlCard = ({setDlBack, DlBack,pickImage}) => {
     return (
         <View style={{ marginTop: "10%", padding: "5%", width: "90%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
             <View>
-                <Text
+               <Text
                     style={{
                         fontFamily: "OpenSans-Regular",
-                        fontSize: 16,
-                        textAlign: "center"
+                        fontSize: 16
                     }}
-                >
-                    Upload Back-Side photo and details
-                    should be clearly Visible.
+                >Upload the back side of your DL.
                 </Text>
             </View>
             {/* adhar card */}
-            <View style={{ marginVertical: 20, width: "70%", marginHorizontal: "auto", borderStyle: "dashed", borderWidth: 1, borderColor: "#969AA4", borderRadius: 10 }}>
-                <Image style={{ width: "100%", objectFit: "contain", height: 150 }} source={{
-                    uri: "https://cdn.pixabay.com/photo/2022/11/09/00/44/aadhaar-card-7579588_640.png"
-                }} />
-            </View>
-            <View style={{}}>
+               {DlBack && (
+        <Image
+          source={{ uri: DlBack }}
+          style={{ width: "100%", height: 200, marginTop: 20, borderRadius: 10 }}
+        />
+      )}
+            <View style={{ marginTop: "10%" }}>
                 <TouchableOpacity style={{
                     width: "90%",
                     marginHorizontal: "auto",
@@ -153,13 +177,15 @@ const UploadedLicense = () => {
                     alignItems: "center",
                     gap: 10,
                     justifyContent: "center"
-                }}>
-                    <MaterialIcons name="clear" size={20} color="#FA4A0C" />
-                    <Text style={{
-                        fontFamily: "OpenSans-Regular",
-                        fontSize: 16,
-                        color: "#FA4A0C",
-                    }}>Uploaded</Text>
+                }}
+                onPress={() => pickImage(setDlBack)}
+                >
+                     <Entypo name="image" size={20} color="#FA4A0C" />
+                                       <Text style={{
+                                           fontFamily: "OpenSans-Regular",
+                                           fontSize: 16,
+                                           color: "#FA4A0C"
+                                       }}>Upload Back</Text>
                 </TouchableOpacity>
             </View>
         </View >

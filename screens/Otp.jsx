@@ -2,10 +2,47 @@ import { Dimensions, Image, KeyboardAvoidingView, ScrollView, StyleSheet, Text, 
 const { height } = Dimensions.get("window")
 import { useNavigation } from '@react-navigation/native'
 import { OtpInput } from 'react-native-otp-entry'
+import { useState } from 'react'
+import apiService from '../services/ApiService'
+import { useDispatch } from 'react-redux'
+import { setPhoneDetails, setToken } from '../redux/authSlice'
 
 
-const Otp = () => {
+const Otp = ({route}) => {
+    const dispatch = useDispatch();
+    const {phoneNumber} = route.params || {};
     const navigation = useNavigation()
+    const [otp, setOtp] = useState("");
+console.log("OTP:", otp);
+
+const VerifyOtp=async()=>{
+    // navigation.replace("onboarding", { phoneNumber });
+    if (otp.length < 4) {
+        alert("Please enter a valid OTP");
+        return;
+    }
+   try {
+    const response = await apiService(`/api/deliveryBoy/deliveryLogin/${phoneNumber}`, 'POST', { givenOTP: otp });
+    console.log("Response:", response);
+    if (response.data) {
+        console.log("OTP verified successfully:", response.data);
+        dispatch(setPhoneDetails(phoneNumber))
+        dispatch(setToken(response.data.token))
+        navigation.replace("onboarding");
+    } else {
+        console.error("Failed to verify OTP:", response.error);
+        alert("Failed to verify OTP. Please try again later.");
+    }
+   } catch (error) {
+       console.error("Error verifying OTP:", error);
+       alert("Failed to verify OTP. Please try again later.");
+    
+   }
+
+}
+
+
+
     return (
         <KeyboardAvoidingView
             behavior={null}
@@ -17,7 +54,7 @@ const Otp = () => {
             <View
                 style={styles.bottomContainer}>
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <OtpForm navigation={navigation} />
+                    <OtpForm navigation={navigation} setOtp={setOtp} VerifyOtp={VerifyOtp}/>
                 </ScrollView>
             </View>
         </KeyboardAvoidingView>
@@ -72,14 +109,14 @@ const styles = StyleSheet.create({
     }
 })
 
-const OtpForm = ({ navigation }) => {
+const OtpForm = ({ navigation,setOtp,VerifyOtp }) => {
     return (
         <ScrollView>
             <Heading />
             <SecondaryHeading />
-            <OtpInputs />
+            <OtpInputs setOtp={setOtp}/>
             <Option />
-            <ButtonComponent />
+            <ButtonComponent VerifyOtp={VerifyOtp}/>
         </ScrollView>
     )
 }
@@ -114,7 +151,7 @@ const OtpInputs = ({ setOtp }) => {
                 focusColor={"#fff"} theme={{
                     pinCodeContainerStyle: styles.otpPinCodeContainer,
                     pinCodeTextStyle: styles.pinCodeText
-                }} numberOfDigits={4} onTextChange={(text) => console.log(text)} />
+                }} numberOfDigits={4} onTextChange={setOtp} />
         </View>
     )
 }
@@ -128,10 +165,10 @@ const Option = () => {
     )
 }
 
-const ButtonComponent = () => {
+const ButtonComponent = ({VerifyOtp}) => {
     const navigation = useNavigation()
     return (
-        <TouchableOpacity onPress={() => navigation.navigate("onboarding")} style={{ backgroundColor: "#FA4A0C", padding: "4%", borderRadius: 10, width: "80%", alignItems: "center", marginHorizontal: "auto", marginTop: "2%" }}>
+        <TouchableOpacity onPress={VerifyOtp} style={{ backgroundColor: "#FA4A0C", padding: "4%", borderRadius: 10, width: "80%", alignItems: "center", marginHorizontal: "auto", marginTop: "2%" }}>
             <Text style={{ color: "#fff", fontSize: 16, fontWeight: "500", fontFamily: "OpenSans-Medium" }}>Continue</Text>
         </TouchableOpacity>
     )

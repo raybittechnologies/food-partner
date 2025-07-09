@@ -7,6 +7,9 @@ export const authSlice = createSlice({
     token: null,
     deviceToken: null,
     isAuthenticated: false, // Track authentication status
+    order: null,
+    delivery:'',
+    submitOrder: false,
   },
   reducers: {
     setUser(state, action) {
@@ -35,6 +38,19 @@ export const authSlice = createSlice({
         };
       }
     },
+     setOrder(state, action) {
+      state.order = action.payload;
+    },
+      clearOrder(state) {
+      state.order = null;
+    },
+setDelivery(state, action) {
+      state.delivery = action.payload;
+},
+setSubmitOrder(state, action) {
+      state.submitOrder = action.payload;
+}
+  
   },
 });
 export const {
@@ -43,6 +59,10 @@ export const {
   setToken,
   setDeviceToken,
   setUserProfilePic,
-  setisAuthenticated
+  setisAuthenticated,
+  setOrder,
+  clearOrder,
+  setDelivery,
+  setSubmitOrder
 } = authSlice.actions;
 export default authSlice.reducer;

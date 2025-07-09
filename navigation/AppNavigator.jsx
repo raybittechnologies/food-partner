@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import DeliveryLanding from '../screens/Landing';
 import Login from '../screens/Login';
@@ -18,6 +18,10 @@ import Dashboard from '../screens/Dashboard';
 import OrderRequest from '../screens/OrderRequest';
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {NavigationContainer, useNavigation} from '@react-navigation/native';
+import { useOrder } from '../context/OrderContext';
+import BankDetails from '../screens/profile/BankDetails';
+import FoodCard from '../screens/profile/FoodCard';
+import { useSocket } from '../context/sockets';
 const Stack = createNativeStackNavigator();
 
 
@@ -30,25 +34,42 @@ const AuthStackScreen = () => (
     <Stack.Screen name="login" component={Login} />
     <Stack.Screen name="otp" component={Otp} />
     <Stack.Screen name="onboarding" component={PartnerOnboarding} />
-    <Stack.Screen name="personal-info" component={PersonalInfo} />
-    <Stack.Screen name="personal-docs" component={PersonalDocs} />
+    <Stack.Screen name="personal-information" component={PersonalInfo} />
+    <Stack.Screen name="delivery-documents" component={PersonalDocs} />
     <Stack.Screen name="vehicle-details" component={VehicleDetails} />
-    <Stack.Screen name="bank-account-details" component={BankAccountDetails} />
-    <Stack.Screen name="work-details" component={WorkDetails} />
-    <Stack.Screen name="upload-adhar" component={UploadAdhar} />
-    <Stack.Screen name="upload-pan" component={UploadPAN} />
-    <Stack.Screen name="upload-driving-license" component={UploadDrivingLicense} />
+    <Stack.Screen name="bank-details" component={BankAccountDetails} />
+    <Stack.Screen name="work-type" component={WorkDetails} />
+    <Stack.Screen name="aadhar-card" component={UploadAdhar} />
+    <Stack.Screen name="pan-card" component={UploadPAN} />
+    <Stack.Screen name="driving-license" component={UploadDrivingLicense} />
     <Stack.Screen name="registration-complete" component={RegistrationComplete} />
   </Stack.Navigator>
 );
 
-// App stack screens for authenticated users
-const AppStackScreen = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="dashboard" component={Dashboard} />
-    <Stack.Screen name="order-request" component={OrderRequest} />
-  </Stack.Navigator>
-);
+// App stack screens for authenticated usersx
+const AppStackScreen = () => {
+  const navigation = useNavigation();
+  const { newOrder,dispatchOrder } = useSocket();
+  console.log("Dispatch Order in AppStackScreen:", dispatchOrder);
+  console.log("New Order in AppStackScreen:",  newOrder);
+useEffect(() => {
+  if (newOrder) {
+    navigation.navigate('order-request');
+  } else if (dispatchOrder) {
+    navigation.navigate('order-request', { status: 'dispatched' });
+  }
+}, [newOrder, dispatchOrder]);
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+
+      
+      <Stack.Screen name="dashboard" component={Dashboard} />
+      <Stack.Screen name="bank-details" component={BankDetails} />
+      <Stack.Screen name="food-id" component={FoodCard} />
+<Stack.Screen name="order-request" component={OrderRequest} />
+    </Stack.Navigator>
+  );
+};
 
 
 const AppNavigator = () => {

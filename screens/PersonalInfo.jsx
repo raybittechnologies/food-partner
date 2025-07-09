@@ -5,29 +5,96 @@ import { useState } from 'react'
 import Entypo from 'react-native-vector-icons/Entypo'
 import { useNavigation } from '@react-navigation/native'
 import Header from '../components/common/Header'
+import ChooseImage from '../components/info/ChooseImage'
+import { useSelector } from 'react-redux'
+import apiService from '../services/ApiService'
+import SuccessModal from '../components/common/DynamicModal'
 
 const PersonalInfo = () => {
+    const [modalVisible, setModalVisible] = useState(false);
+const [modalMessage, setModalMessage] = useState('');
     const navigation = useNavigation()
-    const [gender, setGender] = useState("male")
-    const [inputs, setInputs] = useState({
-        gender: "male"
-    })
+   const { token } = useSelector((state) => state.auth);
+ const [inputs, setInputs] = useState({
+  first_name: '',
+  last_name: '',
+  gender: 'male',
+  profile_pic: null, // store image as file or base64
+});
+
+const SendInfo=async()=>{
+    if (!inputs.first_name || !inputs.last_name || !inputs.profile_pic) {
+        alert("Please fill all fields and upload a profile picture");
+        return;
+    }
+    try {
+        const formData = new FormData();
+       formData.append('first_name', inputs.first_name);
+  formData.append('last_name', inputs.last_name);
+  formData.append('gender', inputs.gender);
+   formData.append('profile_pic', {
+      uri: inputs.profile_pic.uri,
+      name: inputs.profile_pic.fileName || 'profile.jpg',
+      type: inputs.profile_pic.type || 'image/jpeg',
+    });
+    
+    const response = await apiService('/api/deliveryBoy/infoUpdate', 'PATCH', formData, {
+    Authorization: `Bearer ${token}`,
+  });
+
+  if (response.error) {
+    console.error(response.error);
+  } else {
+    console.log('Success:', response.data);
+    setModalMessage('Personal info submitted successfully!');
+    setModalVisible(true);
+  }
+    } catch (error) {
+        console.error("Error sending personal info:", error);
+        alert("Failed to send personal information. Please try again later.");
+        
+    }
+
+}
     return (
         <View style={styles.container}>
             <Header title={"Enter Personal Information"} showicon={true}/>
             <ScrollView style={{ flex: 1 }}>
                 <View>
-                    <Input label={"First Name"} placeholder={"First Name"} />
-                    <Input label={"Last Name"} placeholder={"Last Name"} />
+                   <Input
+  label="First Name"
+  placeholder="First Name"
+  value={inputs.first_name}
+  onChangeText={(text) => setInputs({ ...inputs, first_name: text })}
+/>
+<Input
+  label="Last Name"
+  placeholder="Last Name"
+  value={inputs.last_name}
+  onChangeText={(text) => setInputs({ ...inputs, last_name: text })}
+/>
                 </View>
-                <RadioInputs gender={gender} setGender={setGender} />
-                <UploadPic />
+               <RadioInputs
+  gender={inputs.gender}
+  setGender={(g) => setInputs({ ...inputs, gender: g })}
+/>
+<ChooseImage
+  imageUri={inputs.profile_pic}
+  onSelect={(uri) => setInputs({ ...inputs, profile_pic: uri })}
+/>
                 <TouchableOpacity 
-                onPress={()=>navigation.navigate("personal-docs")}
+                onPress={SendInfo}
                 style={{ marginTop: "10%", width: "90%", height: 64, marginHorizontal: "auto", backgroundColor: "#FA4A0C", padding: 10, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Text style={{ color: "#fff", fontSize: 24, fontFamily: "OpenSans-Regular" }}>Continue</Text>
                 </TouchableOpacity>
-
+<SuccessModal
+  visible={modalVisible}
+  message={modalMessage}
+  onClose={() => {
+    setModalVisible(false);
+    navigation.goBack() // or whatever your next screen is
+  }}
+/>
             </ScrollView>
         </View>
     )
@@ -41,38 +108,40 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff"
     }
 })
-// const Header = () => {
-//     const navigation = useNavigation()
-//     return (
-//         <View style={{ backgroundColor: "#202020", borderBottomStartRadius: 25, borderBottomEndRadius: 25, padding: "7%", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 10 ,paddingTop: Platform.OS === "ios" ? 50 : 20,}}>
-//             <TouchableOpacity onPress={() => navigation.goBack()}>
-//                 <AntDesign name="arrowleft" color="#fff" size={20} />
-//             </TouchableOpacity>
-//             <View>
-//                 <Text style={{ color: "#fff", fontSize: 20, fontFamily: "OpenSans-Regular", textAlign: "center" }}>Enter Personal Information</Text>
-//             </View>
-//         </View>
-//     )
-// }
 
-const Input = ({ placeholder, label }) => {
-    return (
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={{ width: "90%", marginHorizontal: "auto", marginTop: "5%" }}>
-                    <View>
-                        <Text style={{
-                            color: "#202020", fontSize: 16, fontFamily: "OpenSans-Regular",
-                        }}>{label}</Text>
-                    </View>
-                    <View style={{ marginTop: 5 }}>
-                        <TextInput placeholderTextColor={"#000"} style={{ height: 50, borderColor: "#D6D6D6", borderWidth: 1, borderRadius: 10, padding: 10, fontFamily: "OpenSans-Regular", elevation: 5, backgroundColor: "#fff", paddingLeft: 20, color: "#000" }} placeholder={placeholder} />
-                    </View>
-                </View>
-            </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
-    )
-}
+
+const Input = ({ placeholder, label, value, onChangeText }) => {
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ width: "90%", marginHorizontal: "auto", marginTop: "5%" }}>
+          <View>
+            <Text style={{ color: "#202020", fontSize: 16 }}>{label}</Text>
+          </View>
+          <View style={{ marginTop: 5 }}>
+            <TextInput
+              value={value}
+              onChangeText={onChangeText}
+              placeholderTextColor="#000"
+              style={{
+                height: 50,
+                borderColor: "#D6D6D6",
+                borderWidth: 1,
+                borderRadius: 10,
+                padding: 10,
+                backgroundColor: "#fff",
+                paddingLeft: 20,
+                color: "#000",
+              }}
+              placeholder={placeholder}
+            />
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  );
+};
+
 
 const RadioInputs = ({ gender, setGender }) => {
     return (
