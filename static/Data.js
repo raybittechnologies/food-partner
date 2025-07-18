@@ -9,11 +9,13 @@ export const data = [
     id: 2,
     icon: 'medkit-outline', // Ionicons (represents emergency/first aid)
     title: 'Emergency Details',
+    screen: 'emergency-details',
   },
   {
     id: 3,
     icon: 'notifications-outline', // Ionicons (perfect for notifications)
     title: 'Notifications',
+    screen:'notifications'
   },
   {
     id: 4,

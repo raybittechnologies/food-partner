@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     },
     cardContainer: {
       width:width*0.8,
-      height:height*0.5,
+      height:height*0.54,
       backgroundColor:'#FA4A0C',
       borderRadius: 10,
       position:'absolute',

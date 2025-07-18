@@ -22,6 +22,8 @@ import { useOrder } from '../context/OrderContext';
 import BankDetails from '../screens/profile/BankDetails';
 import FoodCard from '../screens/profile/FoodCard';
 import { useSocket } from '../context/sockets';
+import Emergency from '../screens/profile/Emergency';
+import Notifications from '../screens/profile/Notifications';
 const Stack = createNativeStackNavigator();
 
 
@@ -67,6 +69,8 @@ useEffect(() => {
       <Stack.Screen name="bank-details" component={BankDetails} />
       <Stack.Screen name="food-id" component={FoodCard} />
 <Stack.Screen name="order-request" component={OrderRequest} />
+<Stack.Screen name="emergency-details" component={Emergency} />
+<Stack.Screen name="notifications" component={Notifications} />
     </Stack.Navigator>
   );
 };

@@ -76,7 +76,6 @@ socketInstance?.on('newOrderNotification', (order) => {
     console.log("Order delivered:", order);
 
   })
-      // Clean up the socket connection when the provider is unmounted or token changes
       return () => {
         socketInstance.disconnect();
         console.log('Socket disconnected');

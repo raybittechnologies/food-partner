@@ -27,12 +27,12 @@ console.log(submitOrder)
 
 
 const dispatch = useDispatch()
-const handlelogout = () => {
-        // Handle logout logic here
-        console.log("Logout pressed");
-        dispatch(setisAuthenticated(false)); // Update the authentication state
+// const handlelogout = () => {
+//         // Handle logout logic here
+//         console.log("Logout pressed");
+//         dispatch(setisAuthenticated(false)); // Update the authentication state
         
-    };
+//     };
 
 
 
@@ -74,7 +74,7 @@ const handlelogout = () => {
 
   return (
     <View style={styles.container}>
-        <Header handlelogout={handlelogout} submitOrder={submitOrder}  setIsModalVisible={ setIsModalVisible}/>
+        <Header navigation={navigation} submitOrder={submitOrder}  setIsModalVisible={ setIsModalVisible}/>
         {/* {isNewOrder && <BottomPopup />} */}
         
     <MapComponent />
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     }
 })
 
-const Header = ({handlelogout,submitOrder,setIsModalVisible}) => {
+const Header = ({navigation,submitOrder,setIsModalVisible}) => {
 
 
    
@@ -127,7 +127,7 @@ const Header = ({handlelogout,submitOrder,setIsModalVisible}) => {
                {submitOrder && <TouchableOpacity onPress={()=>setIsModalVisible(true)} style={{ backgroundColor: "green", borderRadius: 10, display: "flex", alignItems: "center", width: "25%", paddingVertical: 10, paddingHorizontal: 5,elevation:5 }}>
                 <Text style={{fontSize:10,fontFamily:'Regular',color:'white'}}>Submit Order</Text>
                </TouchableOpacity>}
-                <TouchableOpacity onPress={handlelogout}>
+                <TouchableOpacity onPress={()=>navigation.navigate('notifications')}>
                     <IonIcons name="notifications-outline" color="#fff" size={25} />
                </TouchableOpacity>
             </View>
