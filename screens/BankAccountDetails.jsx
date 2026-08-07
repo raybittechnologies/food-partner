@@ -8,9 +8,12 @@ import DynamicDropdown from '../components/common/Dropdown'
 import { Banks } from '../static/Data'
 import { useSelector } from 'react-redux'
 import apiService from '../services/ApiService'
+import { colors } from '../constants/colors'
+import ButtonComp from '../components/common/ButtonComp'
 
 const BankAccountDetails = () => {
     const { token } = useSelector((state) => state.auth);
+    const [loading, setLoading] = useState(false);
     const navigation = useNavigation()
     const [confirmAccountNo, setConfirmAccountNo] = useState('');
       const [inputs, setInputs] = useState({
@@ -30,28 +33,34 @@ const handleSubmit = async() => {
         return;
     }
    try {
+    setLoading(true);
     const response = await apiService('/api/deliveryBoy/bankUpdate', 'PATCH', inputs, {
         Authorization: `Bearer ${token}`,
     });
-    if (response.data.status === "success") {
+    if (response.data) {
+        setLoading(false);
         alert("Bank details submitted successfully!");
         console.log(response.data);
         
     } else {
         alert("Failed to submit bank details. Please try again later.");
     }
+  
    } catch (error) {
         console.error("Error in HandleSubmit:", error);
         alert("An error occurred while submitting bank details. Please try again later.");
     } finally {
-    
+        setLoading(false);
    }
 }
 
     return (
-        <View style={styles.container}>
-            <Header title={"Enter Bank Information"} showicon={true}/>
+        <KeyboardAvoidingView style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
             <ScrollView showsVerticalScrollIndicator={false}>
+            <Header title={"Enter Bank Information"} showicon={false}/>
+            
                        
               <InputField
   label="Account Number"
@@ -78,12 +87,20 @@ const handleSubmit = async() => {
   onChangeText={(text) => setInputs({ ...inputs, IFSC_code: text })}
 />
             </ScrollView>
-            <TouchableOpacity 
+              <ButtonComp
+            title="Submit"
             onPress={handleSubmit}
-            style={{ marginVertical: "15%", backgroundColor: "#FA4A0C", borderRadius: 10, height: 50, display: "flex", justifyContent: "center", alignItems: "center", width: "80%", marginHorizontal: "auto" }}>
-                <Text style={{ color: "#fff", fontSize: 16, fontFamily: "OpenSans-Medium", textAlign: "center", }}>Submit</Text>
-            </TouchableOpacity>
-        </View>
+            bg={colors.primary}
+            color="#fff"
+            size={16}
+            fw="700"
+            ff="OpenSans-Bold"
+            ta="center"
+            height={54}
+            loading={loading}
+            mt={50}
+          />
+        </KeyboardAvoidingView>
     )
 }
 
@@ -92,7 +109,8 @@ export default BankAccountDetails
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff"
+        backgroundColor: "#fff",
+        padding: 16,
     }
 })
 

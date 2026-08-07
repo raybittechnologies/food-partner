@@ -1,93 +1,75 @@
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-const { height, width } = Dimensions.get('window');
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react'
+import { StyleSheet, View, Image, Animated, Dimensions } from 'react-native'
 
-const DeliveryLanding = () => {
-  return (
-    <View style={styles.container}>
-      <View>
-        <Image
-          source={require("../assets/images/pana.png")}
-          style={{ height: height * 0.6, width: '100%', resizeMode: 'contain' }}
-        />
-      </View>
-      <CenterText />
-      <BottomContainer />
-    </View>
-  );
-};
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
+const LOGO_SIZE = 160
 
-export default DeliveryLanding;
+// Purely presentational — no navigation logic here. MainNavigation
+// controls how long this shows and where the app goes next (it renders
+// this component directly, before NavigationContainer even mounts, so
+// useNavigation() is not available inside this component).
+const Landing = () => {
+    const scaleAnim = useRef(new Animated.Value(1)).current
+    // Starts just off-screen left, ends just off-screen right
+    const translateX = useRef(new Animated.Value(-SCREEN_WIDTH / 2 - LOGO_SIZE / 2)).current
+
+    useEffect(() => {
+        const pulse = Animated.loop(
+            Animated.sequence([
+                Animated.timing(scaleAnim, {
+                    toValue: 1.15,
+                    duration: 800,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scaleAnim, {
+                    toValue: 1,
+                    duration: 800,
+                    useNativeDriver: true,
+                }),
+            ])
+        )
+        pulse.start()
+
+        // One-directional sweep left -> right, then snaps back to the start
+        // and repeats — reads as continuous forward motion, not a bounce.
+        const drive = Animated.loop(
+            Animated.timing(translateX, {
+                toValue: SCREEN_WIDTH / 2 + LOGO_SIZE / 2,
+                duration: 2200,
+                useNativeDriver: true,
+            })
+        )
+        drive.start()
+
+        return () => {
+            pulse.stop()
+            drive.stop()
+        }
+    }, [scaleAnim, translateX])
+
+    return (
+        <View style={styles.container}>
+            <Animated.Image
+                source={require('../assets/images/splash.png')}
+                style={[styles.logo, { transform: [{ translateX }, { scale: scaleAnim }] }]}
+                resizeMode="contain"
+            />
+        </View>
+    )
+}
+
+export default Landing
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    position: 'relative',
-  },
-  bottomContainer: {
-    position: 'absolute',
-    bottom: 0,
-    height: height * 0.2,
-    width: '100%',
-    backgroundColor: '#202020',
-    borderTopEndRadius: width * 0.15,
-    borderTopStartRadius: width * 0.15,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-const CenterText = () => {
-  return (
-    <View>
-      <Text
-        style={{
-          fontSize: 40,
-          fontWeight: '400',
-          fontFamily: 'OpenSans-Medium',
-          color: 'black',
-          textAlign: 'center',
-          maxWidth: width * 0.8,
-          marginHorizontal: 'auto',
-        }}>
-        Deliver Smiles Earn Big!
-      </Text>
-    </View>
-  )
-}
-
-
-const BottomContainer = () => {
-  const navigation = useNavigation()
-  return (
-    <View style={styles.bottomContainer}>
-      <TouchableOpacity
-        onPress={() => navigation.replace('login')}
-        style={{
-          backgroundColor: '#FA4A0C',
-          height: height * 0.075,
-          width: '70%',
-          borderRadius: 10,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <Text
-          style={{
-            fontFamily: 'OpenSans-Medium',
-            fontSize: 32,
-            color: '#fff',
-          }}>
-          Get Started
-        </Text>
-      </TouchableOpacity>
-    </View>
-  )
-}
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        overflow: 'hidden',
+    },
+    logo: {
+        width: LOGO_SIZE,
+        height: LOGO_SIZE,
+    },
+})

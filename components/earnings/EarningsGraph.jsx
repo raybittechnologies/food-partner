@@ -1,64 +1,89 @@
-import React from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
-import { LineChart } from 'react-native-gifted-charts';
+import React from 'react'
+import { View, Text, StyleSheet, Dimensions } from 'react-native'
 
-const { width } = Dimensions.get('window');
+import { colors } from '../../constants/colors'
+import { BarChart } from 'react-native-gifted-charts'
 
-const ChartComponent = () => {
-  const data = [
-    { value: 100 },
-    { value: 100 },
-    { value: 80 },
-    { value: 200 },
-    { value: 180 },
-    { value: 250 },
-    { value: 170 },
-  ];
+const { width } = Dimensions.get('window')
 
-  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const EarningsGraph = ({
+  data = [
+    { label: 'M', value: 550 },
+    { label: 'T', value: 820 },
+    { label: 'W', value: 400 },
+    { label: 'T', value: 950 },
+    { label: 'F', value: 1200 },
+    { label: 'S', value: 330 },
+    { label: 'S', value: 0 },
+  ],
+}) => {
+  const chartWidth = width - 80
 
-  const chartWidth = width - 80;
-  const totalPoints = data.length;
-  const initialSpacing = 0;
-  const spacing = chartWidth / (totalPoints - 1); // space between points
+  const barData = data.map((d) => ({
+    value: d.value,
+    label: d.label,
+    topLabelComponent: () =>
+      d.value > 0 ? (
+        <Text style={styles.barTopLabel}>₹{d.value}</Text>
+      ) : null,
+    frontColor: colors.primary,
+  }))
 
   return (
-    <View style={styles.container}>
-      <LineChart
-        areaChart
-        curved
-        data={data}
-        height={220}
-        width={chartWidth}
-        initialSpacing={initialSpacing}
-        spacing={spacing}
-        hideDataPoints
-        color="#ff4c4c"
-        thickness={2}
-        startFillColor="#ff4c4c"
-        endFillColor="#ff4c4c"
-        startOpacity={0.25}
-        endOpacity={0.02}
-        animated
-        animateOnDataChange
-        yAxisColor="#aaa"
-        xAxisColor="#aaa"
-        noOfSections={4}
-        yAxisTextStyle={{ color: '#aaa' }}
-        rulesColor="transparent"
-        xAxisLabelTexts={daysOfWeek}
-        xAxisLabelTextStyle={{ color: '#aaa', fontWeight: '600' }}
-      />
+    <View style={styles.card}>
+      <Text style={styles.heading}>Earnings Overview</Text>
+      <View style={styles.chartWrap}>
+        <BarChart
+          data={barData}
+          width={chartWidth}
+          height={160}
+          barWidth={22}
+          spacing={18}
+          initialSpacing={12}
+          barBorderRadius={5}
+          hideRules
+          xAxisThickness={1}
+          xAxisColor="#E5E5E5"
+          yAxisThickness={0}
+          hideYAxisText
+          noOfSections={4}
+          xAxisLabelTextStyle={styles.xAxisLabel}
+          disablePress
+        />
+      </View>
     </View>
-  );
-};
+  )
+}
 
-export default ChartComponent;
+export default EarningsGraph
 
 const styles = StyleSheet.create({
-  container: {
-    // paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: 'transparent',
+  card: {
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 14,
   },
-});
+  heading: {
+    fontSize: 16,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 8,
+  },
+  chartWrap: {
+    marginLeft: -8,
+  },
+  barTopLabel: {
+    fontSize: 10,
+    fontFamily: 'OpenSans-Regular',
+    color: '#555',
+    marginBottom: 2,
+  },
+  xAxisLabel: {
+    color: '#8A8A8A',
+    fontSize: 12,
+    fontFamily: 'OpenSans-Regular',
+  },
+})

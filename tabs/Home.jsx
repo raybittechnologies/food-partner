@@ -1,160 +1,546 @@
-import { Dimensions, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
-
-const { height } = Dimensions.get("window")
-import IonIcons from 'react-native-vector-icons/Ionicons'
-import { useOrder } from '../context/OrderContext'
-import { useDispatch, useSelector } from 'react-redux'
-import { clearOrder, setisAuthenticated, setSubmitOrder } from '../redux/authSlice'
+import React from 'react'
+import {
+    StyleSheet,
+    Text,
+    View,
+    Image,
+    TouchableOpacity,
+    ScrollView,
+    SafeAreaView,
+} from 'react-native'
+import Svg, { Circle } from 'react-native-svg'
+import Ionicons from 'react-native-vector-icons/Ionicons'
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import Feather from 'react-native-vector-icons/Feather'
+import { colors } from '../constants/colors'
 import { useNavigation } from '@react-navigation/native'
+import { useSelector } from 'react-redux'
 
-import MapComponent from '../components/map/MapComponent'
-import { useSocket } from '../context/sockets'
-import SubmitOrderModal from '../components/order/SubmitOrder'
-import apiService from '../services/ApiService'
-import SuccessModal from '../components/common/DynamicModal'
+// ---- Mock data (swap these for real props / redux selectors later) ----
+const performanceStats = [
+    {
+        key: 'orders',
+        value: '12',
+        label: 'Orders Completed',
+        iconBg: '#FDE8DD',
+        icon: <MaterialCommunityIcons name="moped" size={22} color="#FA4A0C" />,
+    },
+    {
+        key: 'earnings',
+        value: '₹1,850',
+        label: "Today's Earnings",
+        iconBg: '#DFF5E6',
+        icon: <Feather name="dollar-sign" size={20} color="#2FAE60" />,
+    },
+    {
+        key: 'rating',
+        value: '4.9',
+        label: 'Rating',
+        iconBg: '#FEF6DD',
+        icon: <Ionicons name="star" size={20} color="#F5B400" />,
+    },
+    {
+        key: 'time',
+        value: '5h 20m',
+        label: 'Online Time',
+        iconBg: '#E1EEFE',
+        icon: <Ionicons name="time" size={20} color="#3A86F5" />,
+    },
+]
 
-const Home = () => {
-
-const {submitOrder,order,token}=useSelector((state)=>state.auth)
-console.log(submitOrder)
- const [isModalVisible, setIsModalVisible] = useState(false);
- const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
- const [isOrderSubmitted, setIsOrderSubmitted] = useState(false);
-    const { isNewOrder } = useOrder()
-
-    const navigation = useNavigation()
-
-
-const dispatch = useDispatch()
-// const handlelogout = () => {
-//         // Handle logout logic here
-//         console.log("Logout pressed");
-//         dispatch(setisAuthenticated(false)); // Update the authentication state
-        
-//     };
-
-
-
-
-
-
-  const handleSubmitOrder = async(type) => {
-    console.log('order')
-  try {
-    const url =
-      type === 'arrived'
-        ? `/api/deliveryBoy/arrivedOrder?order_id=${order?.order_id}`
-        : `/api/deliveryBoy/deliverOrder?order_id=${order?.order_id}`;
-
-    const res = await apiService(url, 'PATCH', null, {
-      Authorization: `Bearer ${token}`,
-    });
-
-    console.log(`${type} response:`, res);
-    if(res?.data?.status==='arrived'){
-        setIsSuccessModalVisible(true);
-    }else if(res?.data?.status==='delivered'){
-        setIsOrderSubmitted(true);
-        setIsSuccessModalVisible(true);
-        dispatch(clearOrder())
-         dispatch(setSubmitOrder(false))
-        
-    }
-
-    setIsModalVisible(false);
-  } catch (error) {
-    console.error(`${type} error:`, error);
-  }
-};
-  
-
-
-
-
-  return (
-    <View style={styles.container}>
-        <Header navigation={navigation} submitOrder={submitOrder}  setIsModalVisible={ setIsModalVisible}/>
-        {/* {isNewOrder && <BottomPopup />} */}
-        
-    <MapComponent />
-<SubmitOrderModal
-  visible={isModalVisible}
-  onArrive={() => handleSubmitOrder('arrived')}
-  onSubmit={() => handleSubmitOrder('deliver')}
-  onClose={() => setIsModalVisible(false)} 
-/>
-<SuccessModal visible={isSuccessModalVisible} onClose={() => setIsSuccessModalVisible(false)} message={isOrderSubmitted? 'Order Delivered successfully':'Order arrived successfully wait for customer confirmation'} />
-    </View>
-  )
+const currentDelivery = {
+    restaurant: 'Burger House',
+    eta: '18 mins',
+    distance: '3.2 km',
+    pickup: 'Rajbagh, Srinagar',
+    dropoff: 'Lal Chowk, Srinagar',
 }
 
-export default Home
+const dailyGoal = { completed: 12, total: 20 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#fff",
-        position: "relative",
+const recentActivity = [
+    { key: '1', name: 'Pizza Palace', time: '10 mins ago', amount: '+₹120' },
+    { key: '2', name: 'Spice Kitchen', time: '35 mins ago', amount: '+₹95' },
+    { key: '3', name: 'Burger Point', time: '1 hour ago', amount: '+₹150' },
+]
 
-    }
-})
+// ---- Circular progress ring ----
+const ProgressRing = ({ completed, total, size = 100, strokeWidth = 10 }) => {
+    const radius = (size - strokeWidth) / 2
+    const circumference = 2 * Math.PI * radius
+    const progress = completed / total
+    const strokeDashoffset = circumference * (1 - progress)
 
-const Header = ({navigation,submitOrder,setIsModalVisible}) => {
-
-
-   
-    const { placeOrder } = useOrder()
-    const handleOrder = () => {
-        const newOrder = { id: 1, details: "Order details here" }; // Example order
-        placeOrder(newOrder); // Place the order
-    };
     return (
-        <View style={{ position: "absolute", top: 0, width: "100%", backgroundColor: "#202020", borderBottomStartRadius: 20, borderBottomEndRadius: 20, zIndex: 1,  padding: "5%" ,paddingTop: Platform.OS === "ios" ? 50 : 50}}>
-            <StatusBar
-          hidden={false}
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent={true}
-        />
-
-            <View style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                <View style={{ backgroundColor: "#fff", borderRadius: 10, display: "flex", alignItems: "flex-end", width: "20%", paddingVertical: 5, paddingHorizontal: 5 }}>
-                    <TouchableOpacity style={{ backgroundColor: "#FA4A0C", height: height * 0.035, paddingHorizontal: 5, borderRadius: 10, justifyContent: "center", alignItems: "center" }}>
-                        <Text style={{ color: "#fff", fontFamily: "OpenSans-Regular", fontSize: 12, }}>Online</Text>
-                    </TouchableOpacity>
-                </View>
-               {submitOrder && <TouchableOpacity onPress={()=>setIsModalVisible(true)} style={{ backgroundColor: "green", borderRadius: 10, display: "flex", alignItems: "center", width: "25%", paddingVertical: 10, paddingHorizontal: 5,elevation:5 }}>
-                <Text style={{fontSize:10,fontFamily:'Regular',color:'white'}}>Submit Order</Text>
-               </TouchableOpacity>}
-                <TouchableOpacity onPress={()=>navigation.navigate('notifications')}>
-                    <IonIcons name="notifications-outline" color="#fff" size={25} />
-               </TouchableOpacity>
-            </View>
-        </View >
-    )
-}
-
-const BottomPopup = () => {
-    return (
-        <View style={{ position: "absolute", bottom: 0, width: "100%", backgroundColor: "#202020", borderTopStartRadius: 20, borderTopEndRadius: 20, zIndex: 1, height: height * 0.25, padding: "5%" }}>
-            <View style={{ borderColor: "#6D6D6D", borderRadius: 10, padding: "5%", borderWidth: 1 }}>
-                <View>
-                    <Text style={{
-                        fontFamily: "OpenSans-Regular", color: "#fff", fontSize: 15, textTransform: "uppercase", lineHeight: 22, fontWeight: "300"
-                    }}>pickup from</Text>
-                </View>
-                <View>
-                    <Text style={{ fontFamily: "OpenSans-Medium", color: "#fff", fontSize: 15, textTransform: "uppercase", lineHeight: 23 }}>Samci Restaurant</Text>
-                </View>
-                <View>
-                    <Text style={{ fontFamily: "OpenSans-Regular", color: "#fff", fontSize: 13, textTransform: "uppercase", lineHeight: 22 }}>102, Ist floor, Rehmat Apartments Rajbagh Srinagar</Text>
-                </View>
-                <View style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 5 }}>
-                    <IonIcons name="timer-outline" color="#fff" size={20} />
-                    <Text style={{ fontFamily: "OpenSans-Regular", color: "#fff", fontSize: 13, textTransform: "uppercase", lineHeight: 22 }}>5m Away</Text>
-                </View>
+        <View style={{ width: size, height: size }}>
+            <Svg width={size} height={size}>
+                <Circle
+                    stroke="#F1E9E4"
+                    fill="none"
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    strokeWidth={strokeWidth}
+                />
+                <Circle
+                    stroke={colors.primary}
+                    fill="none"
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={`${circumference} ${circumference}`}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    rotation="-90"
+                    origin={`${size / 2}, ${size / 2}`}
+                />
+            </Svg>
+            <View style={styles.progressRingCenter}>
+                <Text style={styles.progressRingValue}>
+                    {completed}/{total}
+                </Text>
+                <Text style={styles.progressRingLabel}>Orders</Text>
             </View>
         </View>
     )
 }
+
+const Home = () => {
+    const {user}=useSelector((state)=>state.auth);
+    console.log(user);
+    const today = new Date()
+    const navigation=useNavigation();
+    const formattedDate = today.toLocaleDateString('en-US', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+    })
+
+    return (
+        <SafeAreaView style={styles.safeArea}>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header */}
+                <View style={styles.headerRow}>
+                    <View>
+                        <Text style={styles.greeting}>Hello {user?.first_name} {user?.last_name} 👋</Text>
+                        <Text style={styles.dateText}>{formattedDate}</Text>
+                    </View>
+                    <View style={styles.headerIcons}>
+                        <TouchableOpacity style={styles.bellButton} onPress={() => navigation.navigate('notifications')}>
+                            <Ionicons name="notifications-outline" size={20} color="#202020" />
+                        </TouchableOpacity>
+                        <Image
+                            source={{ uri: 'https://i.pravatar.cc/100?img=12' }}
+                            style={styles.avatar}
+                        />
+                    </View>
+                </View>
+
+                <View style={styles.onlineBadge}>
+                    <View style={styles.onlineDot} />
+                    <Text style={styles.onlineText}>Online</Text>
+                </View>
+
+                {/* Today's Performance */}
+                <Text style={styles.sectionTitle}>Today's Performance</Text>
+                <View style={styles.statsGrid}>
+                    {performanceStats.map(stat => (
+                        <View key={stat.key} style={styles.statCard}>
+                            <View style={[styles.statIconWrap, { backgroundColor: stat.iconBg }]}>
+                                {stat.icon}
+                            </View>
+                            <Text style={styles.statValue}>{stat.value}</Text>
+                            <Text style={styles.statLabel}>{stat.label}</Text>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Current Delivery */}
+                <View style={styles.deliveryCard}>
+                    <View style={styles.deliveryAccent} />
+                    <View style={styles.deliveryContent}>
+                        <View style={styles.deliveryTopRow}>
+                            <View style={styles.deliveryStatusRow}>
+                                <View style={styles.liveDot} />
+                                <Text style={styles.deliveryStatusText}>CURRENT DELIVERY</Text>
+                            </View>
+                            <Text style={styles.deliveryEta}>{currentDelivery.eta}</Text>
+                        </View>
+
+                        <View style={styles.deliveryTitleRow}>
+                            <Text style={styles.deliveryRestaurant}>{currentDelivery.restaurant}</Text>
+                            <Text style={styles.deliveryDistance}>{currentDelivery.distance}</Text>
+                        </View>
+
+                        <View style={styles.addressRow}>
+                            <Ionicons name="location" size={16} color="#FA4A0C" />
+                            <Text style={styles.addressText}>{currentDelivery.pickup}</Text>
+                        </View>
+                        <View style={styles.addressRow}>
+                            <Ionicons name="person" size={16} color="#5B5B5B" />
+                            <Text style={styles.addressText}>{currentDelivery.dropoff}</Text>
+                        </View>
+
+                        <TouchableOpacity style={styles.viewOrderButton} onPress={() => navigation.navigate('Tracking')}>
+                            <Text style={styles.viewOrderText}>View Order</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Today's Progress */}
+                <Text style={styles.sectionTitle}>Today's Progress</Text>
+                <View style={styles.progressCard}>
+                    <ProgressRing completed={dailyGoal.completed} total={dailyGoal.total} />
+                    <Text style={styles.progressText}>
+                        You're{' '}
+                        <Text style={styles.progressPercent}>
+                            {Math.round((dailyGoal.completed / dailyGoal.total) * 100)}%
+                        </Text>{' '}
+                        towards today's delivery goal! Just{' '}
+                        {dailyGoal.total - dailyGoal.completed} more to go.
+                    </Text>
+                </View>
+
+                {/* Recent Activity */}
+                <Text style={styles.sectionTitle}>Recent Activity</Text>
+                <View style={styles.activityCard}>
+                    {recentActivity.map((item, index) => (
+                        <View
+                            key={item.key}
+                            style={[
+                                styles.activityRow,
+                                index !== recentActivity.length - 1 && styles.activityDivider,
+                            ]}
+                        >
+                            <View style={styles.activityLeft}>
+                                <View style={styles.checkCircle}>
+                                    <Ionicons name="checkmark" size={14} color="#2FAE60" />
+                                </View>
+                                <View>
+                                    <Text style={styles.activityName}>{item.name}</Text>
+                                    <Text style={styles.activityTime}>{item.time}</Text>
+                                </View>
+                            </View>
+                            <Text style={styles.activityAmount}>{item.amount}</Text>
+                        </View>
+                    ))}
+                </View>
+            </ScrollView>
+        </SafeAreaView>
+    )
+}
+
+export default Home
+
+const CARD_RADIUS = 16
+
+const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#F7F7F8',
+    },
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingTop: 16,
+        paddingBottom: 40,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    greeting: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#141414',
+        fontFamily: 'OpenSans-Bold',
+    },
+    dateText: {
+        fontSize: 13,
+        color: '#8A8A8A',
+        marginTop: 4,
+        fontFamily: 'OpenSans-Regular',
+    },
+    headerIcons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    bellButton: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.06,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    avatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        borderWidth: 2,
+        borderColor: colors.primary,
+    },
+    onlineBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        backgroundColor: '#E4F7EA',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        marginTop: 16,
+    },
+    onlineDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#2FAE60',
+        marginRight: 6,
+    },
+    onlineText: {
+        color: '#2FAE60',
+        fontSize: 13,
+        fontWeight: '600',
+        fontFamily: 'OpenSans-SemiBold',
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#141414',
+        marginTop: 24,
+        marginBottom: 12,
+        fontFamily: 'OpenSans-Bold',
+    },
+    statsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    statCard: {
+        width: '48%',
+        backgroundColor: '#fff',
+        borderRadius: CARD_RADIUS,
+        padding: 16,
+        marginBottom: 14,
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 1,
+    },
+    statIconWrap: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    statValue: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#141414',
+        fontFamily: 'OpenSans-Bold',
+    },
+    statLabel: {
+        fontSize: 12,
+        color: '#8A8A8A',
+        marginTop: 4,
+        fontFamily: 'OpenSans-Regular',
+    },
+    deliveryCard: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderRadius: CARD_RADIUS,
+        marginTop: 4,
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    deliveryAccent: {
+        width: 4,
+        backgroundColor: colors.primary,
+    },
+    deliveryContent: {
+        flex: 1,
+        padding: 16,
+    },
+    deliveryTopRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    deliveryStatusRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    liveDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#2FAE60',
+        marginRight: 6,
+    },
+    deliveryStatusText: {
+        color: colors.primary,
+        fontSize: 12,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+        fontFamily: 'OpenSans-Bold',
+    },
+    deliveryEta: {
+        color: '#8A8A8A',
+        fontSize: 13,
+        fontFamily: 'OpenSans-Regular',
+    },
+    deliveryTitleRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    deliveryRestaurant: {
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#141414',
+        fontFamily: 'OpenSans-Bold',
+    },
+    deliveryDistance: {
+        fontSize: 13,
+        color: '#8A8A8A',
+        fontFamily: 'OpenSans-Regular',
+    },
+    addressRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    addressText: {
+        marginLeft: 8,
+        fontSize: 13,
+        color: '#3A3A3A',
+        fontFamily: 'OpenSans-Regular',
+    },
+    viewOrderButton: {
+        backgroundColor: colors.primary,
+        borderRadius: 24,
+        paddingVertical: 14,
+        alignItems: 'center',
+        marginTop: 16,
+    },
+    viewOrderText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 14,
+        fontFamily: 'OpenSans-Bold',
+    },
+    progressCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: CARD_RADIUS,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 1,
+    },
+    progressRingCenter: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    progressRingValue: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#141414',
+        fontFamily: 'OpenSans-Bold',
+    },
+    progressRingLabel: {
+        fontSize: 11,
+        color: '#8A8A8A',
+        fontFamily: 'OpenSans-Regular',
+    },
+    progressText: {
+        flex: 1,
+        marginLeft: 20,
+        fontSize: 14,
+        color: '#3A3A3A',
+        lineHeight: 20,
+        fontFamily: 'OpenSans-Regular',
+    },
+    progressPercent: {
+        color: '#FA4A0C',
+        fontWeight: '700',
+        fontFamily: 'OpenSans-Bold',
+    },
+    activityCard: {
+        backgroundColor: '#fff',
+        borderRadius: CARD_RADIUS,
+        paddingHorizontal: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 1,
+    },
+    activityRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 14,
+    },
+    activityDivider: {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#EEE',
+    },
+    activityLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    checkCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: '#E4F7EA',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    activityName: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#141414',
+        fontFamily: 'OpenSans-SemiBold',
+    },
+    activityTime: {
+        fontSize: 12,
+        color: '#8A8A8A',
+        marginTop: 2,
+        fontFamily: 'OpenSans-Regular',
+    },
+    activityAmount: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#2FAE60',
+        fontFamily: 'OpenSans-Bold',
+    },
+})

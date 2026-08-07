@@ -40,7 +40,7 @@ export default ChooseImage;
 
 const styles = StyleSheet.create({
   container: {
-    padding: '5%',
+    paddingTop: '5%',
   },
   label: {
     fontFamily: 'OpenSans-Regular',

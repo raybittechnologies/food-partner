@@ -63,7 +63,7 @@ export default DynamicDropdown;
 
 const styles = StyleSheet.create({
   container: {
-    width: '90%',
+    width: '100%',
     alignSelf: 'center',
     marginTop: 20,
   },
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 15,
     backgroundColor: '#fff',
-    elevation: 5,
+    // elevation: 5,
   },
   modalOverlay: {
     flex: 1,

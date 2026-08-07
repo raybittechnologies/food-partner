@@ -1,28 +1,76 @@
-import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+// components/common/OnboardingHeader.js
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, StatusBar } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import AntDesign from 'react-native-vector-icons/AntDesign'
-import { useNavigation } from '@react-navigation/native'
+const GREEN_DARK = '#4F7A63';
+const GREEN_TINT = '#EAF2ED';
 
-const Header = ({title,subtitle,showicon=false,fd='row'}) => {
-    const navigation = useNavigation()
+const OnboardingHeader = ({ title, subtitle, icon = 'bag-outline', showBack = true, showicon = true }) => {
+    const navigation = useNavigation();
+
     return (
-        <View style={{ width: "100%", backgroundColor: "#202020", elevation: 5, borderBottomStartRadius: 25, borderBottomEndRadius: 25, padding: "7%" ,  paddingTop: Platform.OS === "ios" ? 50 : StatusBar.currentHeight + 10, 
-            alignItems: "center", justifyContent: "space-between", flexDirection: fd, gap: 10, paddingHorizontal: "5%"
-}}>
-    {showicon && (  <TouchableOpacity onPress={() => navigation.goBack()}>
-                <AntDesign name="arrowleft" color="#fff" size={20} />
-          </TouchableOpacity>)}
-            <View>
-                <Text style={{ color: "white", fontSize: 18, fontFamily: "OpenSans-Bold", textAlign: "center" }}>{title}</Text>
-            </View>
-            <View style={{ marginTop: "7%", maxWidth: "80%", marginHorizontal: "auto" }}>
-                <Text style={{ color: "white", fontSize: 12, fontFamily: "OpenSans-Regular", textAlign: "center" }}>{subtitle}</Text>
+        <View style={styles.wrapper}>
+            {showBack && (
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <Ionicons name="arrow-back" size={22} color="#1A1A1A" />
+                </TouchableOpacity>
+            )}
+
+            <View style={styles.card}>
+                {showicon && (
+                    <View style={styles.iconBox}>
+                        <Ionicons name={icon} size={24} color="#fff" />
+                    </View>
+                )}
+                <Text style={styles.title}>{title}</Text>
+                {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
             </View>
         </View>
-    )
-}
+    );
+};
 
-export default Header
+export default OnboardingHeader;
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    wrapper: {
+        paddingTop: 16
+    },
+    backButton: {
+        width: 36,
+        height: 36,
+        justifyContent: 'center',
+        marginBottom: 12,
+    },
+    card: {
+        backgroundColor: GREEN_TINT,
+        borderRadius: 20,
+        padding: 20,
+    },
+    iconBox: {
+        width: 48,
+        height: 48,
+        borderRadius: 14,
+        backgroundColor: GREEN_DARK,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 14,
+    },
+    title: {
+        fontFamily: 'OpenSans-Bold',
+        fontSize: 22,
+        color: '#1A1A1A',
+        marginBottom: 8,
+    },
+    subtitle: {
+        fontFamily: 'OpenSans-Regular',
+        fontSize: 14,
+        lineHeight: 20,
+        color: '#5C6B62',
+    },
+});

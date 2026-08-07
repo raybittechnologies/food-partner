@@ -56,6 +56,7 @@ export const SocketProvider = ({children}) => {
       });
   
   socketInstance.emit('deliveryBoyConnect',data,()=>{
+
 console.log("Location update sent successfully");
   })
 socketInstance?.on('newOrderNotification', (order) => {

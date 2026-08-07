@@ -1,37 +1,83 @@
-// components/docs/CompletedDoc.js
+// components/info/CompletedDocs.js
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getDocMeta } from './Docmeta';
+
+
+const GREEN_DARK = '#4F7A63';
 
 const CompletedDoc = ({ title, href }) => {
   const navigation = useNavigation();
+  const { icon, subtitle } = getDocMeta(title);
 
   return (
     <TouchableOpacity
+      activeOpacity={0.7}
       onPress={() => navigation.navigate(href)}
-      style={{
-        backgroundColor: '#fff',
-        padding: 10,
-        borderColor: '#D6D6D6',
-        borderWidth: 0.5,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 10,
-        minHeight: 50,
-        marginVertical: 5,
-      }}
+      style={styles.card}
     >
-      <View>
-        <Text style={{ fontFamily: 'OpenSans-Regular', fontSize: 15, color: '#60B246' }}>
-          {title}
-        </Text>
+      <View style={styles.iconBox}>
+        <Ionicons name={icon} size={20} color="#fff" />
       </View>
-      <View style={{ flex: 1, alignItems: 'flex-end' }}>
-        <MaterialIcons name="done" size={25} color="#60B246" />
+
+      <View style={styles.textWrap}>
+        <Text style={styles.title}>{title}</Text>
+        {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+      </View>
+
+      <View style={styles.checkBadge}>
+        <Ionicons name="checkmark" size={16} color="#fff" />
       </View>
     </TouchableOpacity>
   );
 };
 
 export default CompletedDoc;
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderColor: '#E5E5EA',
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    minHeight: 64,
+    marginVertical: 6,
+  },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: GREEN_DARK,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  textWrap: {
+    flex: 1,
+  },
+  title: {
+    fontFamily: 'OpenSans-Bold',
+    fontSize: 15,
+    color: '#1A1A1A',
+  },
+  subtitle: {
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 12.5,
+    color: '#8E8E93',
+    marginTop: 2,
+  },
+  checkBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: GREEN_DARK,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

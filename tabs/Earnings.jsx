@@ -1,38 +1,73 @@
-import { Alert, Platform, ScrollView, StatusBar, StyleSheet, Text, Touchable, TouchableOpacity, View } from 'react-native'
+import { Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
+import { ScrollView } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import AntDesign from 'react-native-vector-icons/AntDesign'
+
+
+import ButtonComp from '../components/common/ButtonComp'
+import { colors } from '../constants/colors'
 import EarningsCard from '../components/earnings/EarningsCard'
-import EarningsOverview from '../components/earnings/EarningsOverview'
+import RecentWithdrawals from '../components/earnings/EarningsOverview'
 import EarningsGraph from '../components/earnings/EarningsGraph'
-import Buttoncomp from '../components/common/ButtonComp'
 
 const Earnings = () => {
+  const navigation = useNavigation()
+
   return (
-   <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <AntDesign name="arrowleft" size={22} color="#000" />
+        </TouchableOpacity>
         <Text style={styles.heading}>Earnings</Text>
+        <View style={styles.backBtn} />
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
         <EarningsCard />
-         <EarningsGraph />
-        <EarningsOverview />
-          <Buttoncomp
-        title="Withdraw Money"
-        width={250}
-        height={60}
-        backgroundColor="#28a745"
-        textColor="#fff"
-        borderRadius={12}
-        onPress={() => Alert.alert('Button pressed!')}
-      />
+        <EarningsGraph />
+        <RecentWithdrawals />
+
+        <ButtonComp
+          title="Withdraw Earnings"
+          bg={colors.primary}
+          color="#fff"
+          size={16}
+          fw="700"
+          ff="OpenSans-Bold"
+          ta="center"
+          height={58}
+          mt={10}
+          onPress={() => { }}
+        />
       </ScrollView>
+    </View>
   )
 }
 
 export default Earnings
+
 const styles = StyleSheet.create({
-  container:{
-    flex:1,
-     backgroundColor:'#202020',
-     paddingHorizontal:20,
-     paddingTop:Platform.OS === 'android' ? StatusBar.currentHeight : 50,
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingTop: 20
   },
-  heading:{fontSize:24,fontWeight:'bold',color:'#fff',marginBottom:20},
-  earnings:{borderRadius:10,padding:20,width:'100%',height:200,borderWidth:1,borderColor:'#fff',marginBottom:20},
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  backBtn: {
+    width: 32,
+  },
+  heading: {
+    fontSize: 18,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: '#111',
+  },
 })

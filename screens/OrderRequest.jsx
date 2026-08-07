@@ -1,126 +1,422 @@
-import { Alert, Button, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { useOrder } from '../context/OrderContext';
 import { useNavigation } from '@react-navigation/native';
-import IonIcons from 'react-native-vector-icons/Ionicons'
-import Countdown from '../components/order/ShrinkingBorder';
+import Ionicons from 'react-native-vector-icons/Ionicons'
 import { useSocket } from '../context/sockets';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOrder, setDelivery } from '../redux/authSlice';
 import apiService from '../services/ApiService';
 
-const OrderRequest = ({route}) => {
- const {status}= route.params || {};
+const theme = {
+    green: '#5B8C6E',
+    greenDark: '#4F7A5D',
+    border: '#E5E5E5',
+    textGray: '#6D6D6D',
+    labelGray: '#8A8A8A',
+}
+
+const COUNTDOWN_SECONDS = 60
+
+const OrderRequest = ({ route }) => {
+    const { status } = route.params || {};
     const navigation = useNavigation()
     const dispatch = useDispatch();
-    const { order,token } = useSelector((state) => state.auth);
-    console.log("Order Request:", order);
-    const { newOrder, setIsNewOrder,setNewOrder } = useSocket();
-   
+    const { order, token } = useSelector((state) => state.auth);
+    const { setIsNewOrder, setNewOrder } = useSocket();
 
-    const [timeLeft, setTimeLeft] = useState(60);
-console.log("New Order:", order);
-const handleOrder = async () => {
-  try {
-    const url =
-      status === 'dispatched'
-        ? `/api/deliveryBoy/confirmOrder?order_id=${order?.order_id}`
-        : `/api/deliveryBoy/acceptOrder?order_id=${order?.order_id}`;
+    const [timeLeft, setTimeLeft] = useState(COUNTDOWN_SECONDS);
 
-    const res = await apiService(
-      url,
-      "PATCH",
-      null,
-      {
-        Authorization: `Bearer ${token}`,
-      }
-    );
+    const handleOrder = async () => {
+        try {
+            const url =
+                status === 'dispatched'
+                    ? `/api/deliveryBoy/confirmOrder?order_id=${order?.order_id}`
+                    : `/api/deliveryBoy/acceptOrder?order_id=${order?.order_id}`;
 
-    console.log("Order processed successfully:", res);
-if (res.data?.status==='on the way') { 
-    navigation.replace("dashboard", {
-  screen: "Home", 
-});
-dispatch(setDelivery("delivering"))
- console.log("Delivering")
-}else if(res.data?.status==='accepted'){
-    navigation.replace("dashboard", { screen: "Home" });
-    console.log("Accepted")
-}else{
-    Alert.alert("Error", "Failed to process the order. Please try again.");
-}
+            const res = await apiService(url, "PATCH", null, {
+                Authorization: `Bearer ${token}`,
+            });
 
-  } catch (error) {
-    console.error("Error handling order:", error);
-    Alert.alert("Error", "Failed to handle the order. Please try again.");
-  }
-};
+            console.log("Order processed successfully:", res);
+            if (res.data?.status === 'on the way') {
+                navigation.replace("dashboard", { screen: "Home" });
+                dispatch(setDelivery("delivering"))
+            } else if (res.data?.status === 'accepted') {
+                navigation.replace("dashboard", { screen: "Home" });
+            } else {
+                Alert.alert("Error", "Failed to process the order. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error handling order:", error);
+            Alert.alert("Error", "Failed to handle the order. Please try again.");
+        }
+    };
 
-
-const handleTimeOut=()=>{
-    dispatch(clearOrder())
-    setNewOrder(false)
-    navigation.replace("dashboard", { screen: "Home" });
-}
-
+    const handleTimeOut = () => {
+        dispatch(clearOrder())
+        setNewOrder(false)
+        navigation.replace("dashboard", { screen: "Home" });
+    }
 
     const handleAccept = () => {
-        handleOrder(); // Call the function to handle the order acceptance
-        
-        setNewOrder(false); // Reset newOrder state
+        handleOrder();
+        setNewOrder(false);
         setIsNewOrder(true)
     };
-    return (
-        <View style={{ flex: 1, backgroundColor: "#202020", padding: "5%" ,paddingTop: "10%"}}>
-            <View style={{ marginHorizontal: "auto", marginVertical: 20, borderColor: "#FA4A0C", borderRadius: 100 }}>
-                {/* <Image source={require("../assets/images/map.png")} style={{ borderRadius: 50, resizeMode: "contain" }} /> */}
-              {status !== "dispatched" && <Countdown onComplete={handleTimeOut}/>}
-                
-            </View>
-   {status !=="dispatched" && <View>
-                <Text style={{ color: "#fff", fontFamily: "OpenSans-Medium", fontSize: 24, textAlign: "center" }}>New Order!</Text>
-            </View>}
-            
-            <View style={{ marginTop: "10%", width: "90%", marginHorizontal: "auto", }}>
-                <View style={{ borderColor: "#6D6D6D", borderWidth: 1, borderTopStartRadius: 10, borderTopEndRadius: 10 }}>
-                    <Text style={{ fontFamily: "OpenSans-Regular", color: "#fff", fontSize: 20, textAlign: "center", padding: "5%" }}>Expected Earning : <Text style={{ fontFamily: "OpenSans-Bold", color: "#fff", fontSize: 20 }}> Rs {order?.del_amount}</Text></Text>
-                </View>
-                <View style={{ borderColor: "#6D6D6D", borderWidth: 1, borderBottomStartRadius: 10, borderBottomEndRadius: 10, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                    <View style={{ borderRightColor: "#6D6D6D", borderRightWidth: 1, padding: "5%", display: "flex", justifyContent: "center", alignItems: "center", flex: 1 }}>
-                        <Text style={{ fontFamily: "OpenSans-Regular", color: "#fff", fontSize: 14, textAlign: "center", padding: "5%" }}>Pickup : <Text style={{ fontFamily: "OpenSans-Bold", color: "#fff", fontSize: 14 }}> {!status ? order?.delivery_boy_route?.to_restaurant?.total_distance : 0} km</Text></Text>
-                    </View>
-                    <View style={{ borderRightColor: "#6D6D6D", borderRightWidth: 1, padding: "5%", display: "flex", justifyContent: "center", alignItems: "center", flex: 1 }}>
-                        <Text style={{ fontFamily: "OpenSans-Regular", color: "#fff", fontSize: 14, textAlign: "center", padding: "5%" }}>Drop: <Text style={{ fontFamily: "OpenSans-Bold", color: "#fff", fontSize: 14 }}> {order?.delivery_boy_route?.full_journey?.total_distance} km</Text></Text>
-                    </View>
-                </View>
-            </View>
-            <View style={{ marginTop: "10%", width: "90%", marginHorizontal: "auto", borderColor: "#6D6D6D", borderRadius: 10, padding: "5%", borderWidth: 1 }}>
-                <View>
-                    <Text style={{
-                        fontFamily: "OpenSans-Regular", color: "#fff", fontSize: 15, textTransform: "uppercase", lineHeight: 22, fontWeight: "300"
-                    }}>pickup from</Text>
-                </View>
-                <View>
-                    <Text style={{ fontFamily: "OpenSans-Medium", color: "#fff", fontSize: 15, textTransform: "uppercase", lineHeight: 23 }}>{order?.restaurant_name}</Text>
-                </View>
-                <View>
-                    <Text style={{ fontFamily: "OpenSans-Regular", color: "#fff", fontSize: 13, textTransform: "uppercase", lineHeight: 22 }}>{order?.street}, {order?.landmark}, {order?.area}</Text>
-                </View>
-                <View style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 5 }}>
-                    <IonIcons name="timer-outline" color="#fff" size={20} />
-                    <Text style={{ fontFamily: "OpenSans-Regular", color: "#fff", fontSize: 13, textTransform: "uppercase", lineHeight: 22 }}>{order?.delivery_boy_route?.to_restaurant?.estimated_time} min Away</Text>
-                </View>
-            </View>
-            <View style={{ flex: 1, justifyContent: "flex-end", padding: "5%" }}>
-                <TouchableOpacity onPress={handleAccept} style={{ backgroundColor: status === 'dispatched' ? 'green' : '#FA4A0C', height: 50, display: "flex", justifyContent: "center", alignItems: "center", borderRadius: 25 }}>
-                    <Text style={{ color: "#fff", fontFamily: "OpenSans-Medium", fontSize: 20 }}>{status === 'dispatched' ? 'Confirm' : 'Accept'}</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
 
+    const handleDecline = () => {
+        handleTimeOut();
+    };
+
+    // Countdown ticker (only relevant while waiting for the boy to accept, not while dispatched)
+    useEffect(() => {
+        if (status === "dispatched") return;
+
+        if (timeLeft <= 0) {
+            handleTimeOut();
+            return;
+        }
+        const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+        return () => clearTimeout(id);
+    }, [timeLeft, status]);
+
+    const pickupKm = !status ? order?.delivery_boy_route?.to_restaurant?.total_distance : 0;
+    const dropKm = order?.delivery_boy_route?.full_journey?.total_distance;
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.mapWrap}>
+                <View style={styles.mapCircle}>
+                    <Image
+                        source={require("../assets/images/map.png")}
+                        style={styles.mapImage}
+                    />
+                </View>
+                {status !== "dispatched" && (
+                    <View style={styles.timerBadge}>
+                        <Text style={styles.timerText}>{timeLeft}s</Text>
+                    </View>
+                )}
+            </View>
+
+            {status !== "dispatched" ? (
+                <>
+                    <Text style={styles.title}>🚀 New Delivery Request</Text>
+                    <Text style={styles.subtitle}>You have received a nearby pickup.</Text>
+                </>
+            ) : (
+                <>
+                    <Text style={styles.title}>🛵 Confirm Pickup</Text>
+                    <Text style={styles.subtitle}>Confirm that you've picked up this order.</Text>
+                </>
+            )}
+
+            {/* Estimated earnings card */}
+            <View style={styles.card}>
+                <Text style={styles.cardLabel}>💰  ESTIMATED EARNINGS</Text>
+                <Text style={styles.earnings}>₹{order?.del_amount ?? '0.00'}</Text>
+                <View style={styles.divider} />
+                <View style={styles.distanceRow}>
+                    <View style={styles.distanceItem}>
+                        <Ionicons name="location-outline" size={16} color={theme.green} />
+                        <Text style={styles.distanceText}>
+                            Pickup: <Text style={styles.distanceValue}>{pickupKm} km</Text>
+                        </Text>
+                    </View>
+                    <View style={styles.vDivider} />
+                    <View style={styles.distanceItem}>
+                        <Ionicons name="flag-outline" size={16} color={theme.green} />
+                        <Text style={styles.distanceText}>
+                            Dropoff: <Text style={styles.distanceValue}>{dropKm} km</Text>
+                        </Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Pickup from card */}
+            <View style={styles.card}>
+                <Text style={styles.cardLabelRow}>
+                    <Ionicons name="cart-outline" size={13} color={theme.labelGray} />  PICKUP FROM
+                </Text>
+                <Text style={styles.restaurantName}>{order?.restaurant_name}</Text>
+                <Text style={styles.address}>
+                    {order?.street}{order?.landmark ? `, ${order?.landmark}` : ''}{order?.area ? `, ${order?.area}` : ''}
+                </Text>
+                <View style={styles.pillRow}>
+                    <View style={styles.pill}>
+                        <Ionicons name="time-outline" size={14} color="#333" />
+                        <Text style={styles.pillText}>
+                            Ready in {order?.delivery_boy_route?.to_restaurant?.estimated_time ?? '—'} min
+                        </Text>
+                    </View>
+                    {order?.restaurant_rating ? (
+                        <View style={styles.pill}>
+                            <Ionicons name="star" size={14} color="#E3B341" />
+                            <Text style={styles.pillText}>{order?.restaurant_rating} Rating</Text>
+                        </View>
+                    ) : null}
+                </View>
+            </View>
+
+            {/* Delivery route card */}
+            <View style={styles.card}>
+                <Text style={styles.cardLabel}>DELIVERY ROUTE</Text>
+                <View style={styles.routeRow}>
+                    <View style={styles.routeDotCol}>
+                        <View style={styles.routeDot} />
+                        <View style={styles.routeLine} />
+                    </View>
+                    <View style={styles.routeTextCol}>
+                        <Text style={styles.routeTitle}>{order?.restaurant_name}</Text>
+                        <Text style={styles.routeSubtitle}>Pickup Location</Text>
+                    </View>
+                </View>
+                <View style={styles.routeRow}>
+                    <View style={styles.routeDotCol}>
+                        <View style={styles.routeDot} />
+                    </View>
+                    <View style={styles.routeTextCol}>
+                        <Text style={styles.routeTitle}>Customer Destination</Text>
+                        <Text style={styles.routeSubtitle}>
+                            {order?.area ?? 'Destination'}{dropKm ? ` (${dropKm} km away)` : ''}
+                        </Text>
+                    </View>
+                </View>
+            </View>
+
+            <TouchableOpacity onPress={handleAccept} style={styles.acceptBtn} activeOpacity={0.85}>
+                <Text style={styles.acceptText}>{status === 'dispatched' ? 'Confirm' : 'Accept Order'}</Text>
+            </TouchableOpacity>
+
+            {status !== "dispatched" && (
+                <TouchableOpacity onPress={handleDecline} style={styles.declineBtn} activeOpacity={0.7}>
+                    <Text style={styles.declineText}>Decline Request</Text>
+                </TouchableOpacity>
+            )}
+        </View>
     )
 }
 
 export default OrderRequest
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingHorizontal: 20,
+        paddingTop: "10%",
+    },
+    mapWrap: {
+        width: 130,
+        height: 130,
+        alignSelf: 'center',
+        marginBottom: 20,
+    },
+    mapCircle: {
+        width: 130,
+        height: 130,
+        borderRadius: 65,
+        borderWidth: 1.5,
+        borderColor: theme.green,
+        overflow: 'hidden',
+        backgroundColor: '#F2F2F2',
+    },
+    mapImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    timerBadge: {
+        position: 'absolute',
+        top: -6,
+        right: -30,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        borderWidth: 1.5,
+        borderColor: theme.green,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    timerText: {
+        color: theme.green,
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        fontSize: 13,
+    },
+    title: {
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        fontSize: 20,
+        color: '#111',
+        textAlign: 'center',
+    },
+    subtitle: {
+        fontFamily: 'OpenSans-Regular',
+        fontSize: 13,
+        color: theme.textGray,
+        textAlign: 'center',
+        marginTop: 4,
+        marginBottom: 20,
+    },
+    card: {
+        borderWidth: 1,
+        borderColor: theme.border,
+        borderRadius: 14,
+        padding: 16,
+        marginBottom: 14,
+    },
+    cardLabel: {
+        fontFamily: 'OpenSans-Bold',
+        fontSize: 12,
+        color: theme.labelGray,
+        letterSpacing: 0.5,
+        marginBottom: 8,
+    },
+    cardLabelRow: {
+        fontFamily: 'OpenSans-Bold',
+        fontSize: 12,
+        color: theme.labelGray,
+        letterSpacing: 0.5,
+        marginBottom: 10,
+    },
+    earnings: {
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        fontSize: 26,
+        color: theme.green,
+        marginBottom: 12,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: theme.border,
+        marginBottom: 12,
+    },
+    distanceRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    distanceItem: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    vDivider: {
+        width: 1,
+        height: 20,
+        backgroundColor: theme.border,
+        marginHorizontal: 10,
+    },
+    distanceText: {
+        fontFamily: 'OpenSans-Regular',
+        fontSize: 13,
+        color: '#333',
+    },
+    distanceValue: {
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        color: theme.green,
+    },
+    restaurantName: {
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        fontSize: 18,
+        color: '#111',
+        marginBottom: 6,
+    },
+    address: {
+        fontFamily: 'OpenSans-Regular',
+        fontSize: 13,
+        color: theme.textGray,
+        lineHeight: 19,
+        marginBottom: 12,
+    },
+    pillRow: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    pill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        backgroundColor: '#F4F4F4',
+        borderRadius: 20,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+    },
+    pillText: {
+        fontFamily: 'OpenSans-Regular',
+        fontSize: 12,
+        color: '#333',
+    },
+    routeRow: {
+        flexDirection: 'row',
+    },
+    routeDotCol: {
+        alignItems: 'center',
+        width: 18,
+    },
+    routeDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: theme.green,
+        marginTop: 4,
+    },
+    routeLine: {
+        width: 1,
+        flex: 1,
+        minHeight: 22,
+        backgroundColor: theme.border,
+        marginVertical: 2,
+    },
+    routeTextCol: {
+        flex: 1,
+        marginLeft: 10,
+        marginBottom: 14,
+    },
+    routeTitle: {
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        fontSize: 14,
+        color: '#111',
+    },
+    routeSubtitle: {
+        fontFamily: 'OpenSans-Regular',
+        fontSize: 12,
+        color: theme.textGray,
+        marginTop: 2,
+    },
+    acceptBtn: {
+        backgroundColor: theme.green,
+        height: 54,
+        borderRadius: 27,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 6,
+    },
+    acceptText: {
+        color: '#fff',
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        fontSize: 17,
+    },
+    declineBtn: {
+        height: 54,
+        borderRadius: 27,
+        borderWidth: 1,
+        borderColor: theme.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 12,
+        marginBottom: 20,
+    },
+    declineText: {
+        color: theme.textGray,
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        fontSize: 16,
+    },
+})

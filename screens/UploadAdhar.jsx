@@ -8,6 +8,8 @@ import useImagePicker from '../components/hooks/useImagePicker'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import apiService from '../services/ApiService'
+import { colors } from '../constants/colors'
+import ButtonComp from '../components/common/ButtonComp'
 
 const UploadAdhar = () => {
 const [loading, setLoading] = useState(false);
@@ -39,8 +41,9 @@ try {
 setLoading(true);
     const response = await apiService('/api/deliveryBoy/adharUpdate', 'PATCH', formData, {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
     });
-   if(response.data.status === "success") {
+   if(response?.data?.status === "success") {
     setLoading(false);
 //     console.log("Aadhar card submitted successfully:", response.data);
     alert("Aadhar card submitted successfully!");
@@ -57,7 +60,7 @@ setLoading(true);
 
     return (
         <View style={styles.container}>
-            <Header title={'Upload Adhar Card'} showicon={true}/>
+            <Header title={'Upload Adhar Card'} showicon={false}/>
             <ScrollView style={{ marginBottom: 10 }}>
                 <View style={{ padding: "5%", borderStyle: "dashed", borderBottomColor: "#D6D6D6", borderBottomWidth: 1, }}>
                     <Text
@@ -77,9 +80,21 @@ setLoading(true);
                 </View>
                 <AdharUpload pickImage={pickImage} setAdharFront={setAdharFront} adharFront={adharFront}/>
                 <UploadedAdharCards setAdharBack={setAdharBack} pickImage={pickImage} adharBack={adharBack} />
-                <TouchableOpacity onPress={handleSubmit} style={{ marginVertical: "10%", backgroundColor: "#FA4A0C", borderRadius: 10, height: 50, display: "flex", justifyContent: "center", alignItems: "center", width: "80%", marginHorizontal: "auto" }}>
-                    {loading ? (<ActivityIndicator size="small" color="#fff" />) : (<Text style={{ color: "#fff", fontSize: 16, fontFamily: "OpenSans-Medium", textAlign: "center", }}>Submit</Text>)}
-                </TouchableOpacity>
+
+                  <ButtonComp
+            title="Submit"
+            onPress={handleSubmit}
+            bg={colors.primary}
+            color="#fff"
+            size={16}
+            fw="700"
+            ff="OpenSans-Bold"
+            ta="center"
+            height={54}
+            loading={loading}
+            mt={50}
+          />
+       
             </ScrollView>
         </View>
     )
@@ -90,7 +105,8 @@ export default UploadAdhar
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff"
+        backgroundColor: "#fff",
+        padding: 16,
     }
 })
 
@@ -98,7 +114,7 @@ const styles = StyleSheet.create({
 
 const AdharUpload = ({setAdharFront,pickImage,adharFront={adharFront}}) => {
     return (
-        <View style={{ marginTop: "10%", padding: "5%", width: "90%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
+        <View style={{ marginTop: "10%", padding: "5%", width: "100%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
             <View>
                 <Text
                     style={{
@@ -133,11 +149,11 @@ const AdharUpload = ({setAdharFront,pickImage,adharFront={adharFront}}) => {
                 }}
                 onPress={() => pickImage(setAdharFront)}
                 >
-                    <Entypo name="image" size={20} color="#FA4A0C" />
+                    <Entypo name="image" size={20} color={colors.primary} />
                     <Text style={{
                         fontFamily: "OpenSans-Regular",
                         fontSize: 16,
-                        color: "#FA4A0C"
+                        color: colors.primary
                     }}>Upload Front</Text>
                 </TouchableOpacity>
             </View>
@@ -147,7 +163,7 @@ const AdharUpload = ({setAdharFront,pickImage,adharFront={adharFront}}) => {
 
 const UploadedAdharCards = ({ setAdharBack, pickImage,adharBack}) => {
     return (
-        <View style={{ marginTop: "10%", padding: "5%", width: "90%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
+        <View style={{ marginTop: "10%", padding: "5%", width: "100%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
             <View>
                 <Text
                     style={{
@@ -184,11 +200,11 @@ const UploadedAdharCards = ({ setAdharBack, pickImage,adharBack}) => {
                 }}
                 onPress={() => pickImage(setAdharBack)}
                 >
-                     <Entypo name="image" size={20} color="#FA4A0C" />
+                     <Entypo name="image" size={20} color={colors.primary} />
                     <Text style={{
                         fontFamily: "OpenSans-Regular",
                         fontSize: 16,
-                        color: "#FA4A0C"
+                        color: colors.primary
                     }}>Upload Back</Text>
                 </TouchableOpacity>
             </View>

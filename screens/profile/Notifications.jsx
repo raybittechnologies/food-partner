@@ -1,211 +1,222 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, Image, Platform, TouchableOpacity, StatusBar } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Platform, TouchableOpacity, StatusBar, ScrollView } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
-const data = {
+import { colors } from '../../constants/colors';
+
+
+
+const INITIAL_DATA = {
   today: [
     {
       id: '1',
-      icon: 'payments',
-      text: 'A Netflix payout of $19 has been successful!',
-      time: '11.00 AM',
-      amount: '$19',
+      icon: 'notifications-outline',
+      title: 'New Order Assigned',
+      time: '2 mins ago',
+      text: 'You have been assigned a new delivery to Sector 4. Please accept within 2 mins.',
     },
     {
       id: '2',
-      icon: 'account-balance-wallet',
-      text: 'Successfully top up balance $150 from US CITIBAN. See details here.',
-      time: '08.00 AM',
-      amount: '$150',
+      icon: 'gift-outline',
+      title: 'Incentive Unlocked!',
+      time: '2 hrs ago',
+      text: 'Congratulations! You completed 5 deliveries today and earned an extra bonus of ₹150.',
     },
     {
       id: '3',
-      icon: 'credit-card',
-      text: 'Please top up to continue transactions on Netflix',
-      time: '01.00 AM',
+      icon: 'chatbubble-outline',
+      title: 'Customer Message',
+      time: '5 hrs ago',
+      text: "'Please leave the parcel near the doorstep on the first floor.' - Anish S.",
     },
   ],
   thisWeek: [
     {
       id: '4',
-      icon: 'payments',
-      text: 'A Netflix payout of $19 has been successful!',
-      time: '11.00 AM',
-      amount: '$19',
-      highlight: true,
+      icon: 'card-outline',
+      title: 'Weekly Earnings Deposited',
+      time: '2 days ago',
+      text: 'Your total payout of ₹4,850 for the past week has been transferred to your linked bank account.',
     },
     {
       id: '5',
-      icon: 'account-balance-wallet',
-      text: 'Successfully top up balance $150 from US CITIBAN. See details here.',
-      time: '08.00 AM',
-      amount: '$150',
+      icon: 'checkmark-circle-outline',
+      title: 'Driving License Approved',
+      time: '4 days ago',
+      text: 'Great news! Your uploaded Driving License has been successfully verified. You are ready to ride.',
     },
     {
       id: '6',
-      icon: 'credit-card',
-      text: 'Please top up to continue transactions on Netflix',
-      time: '01.00 AM',
+      icon: 'trending-up-outline',
+      title: 'Srinagar Zone Surge Active',
+      time: '5 days ago',
+      text: 'High order volume detected in Srinagar. Earn up to 1.5x extra on all orders placed before 9 PM.',
     },
   ],
 };
 
-const NotificationItem = ({ item }) => {
+const NotificationCard = ({ item }) => {
   return (
-    <View style={styles.itemContainer}>
+    <View style={styles.card}>
       <View style={styles.iconWrapper}>
-        <Icon name={item.icon} size={20} color="#fff" />
+        <Ionicons name={item.icon} size={18} color={colors.primary} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.notificationText}>
-          {item.text.split(item.amount || '').map((part, index) => (
-            <Text key={index}>
-              <Text style={styles.textNormal}>{part}</Text>
-              {index !== item.text.split(item.amount || '').length - 1 && (
-                <Text style={styles.amountText}>{item.amount}</Text>
-              )}
-            </Text>
-          ))}
-        </Text>
-        <Text style={styles.timeText}>{item.time}</Text>
+        <View style={styles.cardTopRow}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.timeText}>{item.time}</Text>
+        </View>
+        <Text style={styles.cardText}>{item.text}</Text>
       </View>
     </View>
   );
 };
-
 
 const Notifications = () => {
-    const navigation=useNavigation();
+  const navigation = useNavigation();
+  const [data, setData] = useState(INITIAL_DATA);
+
+  const handleClearAll = () => {
+    setData({ today: [], thisWeek: [] });
+  };
+
+  const isEmpty = data.today.length === 0 && data.thisWeek.length === 0;
+
   return (
     <View style={styles.container}>
-
-
-      {/* Title */}
       <View style={styles.titleWrapper}>
-<TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 10 }}>
-  <AntDesign name="arrowleft" size={24} color="#000" />
-</TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <AntDesign name="arrowleft" size={22} color="#000" />
+        </TouchableOpacity>
         <Text style={styles.title}>Notifications</Text>
+        <TouchableOpacity onPress={handleClearAll}>
+          <Text style={styles.clearAll}>Clear All</Text>
+        </TouchableOpacity>
       </View>
-      <Text style={styles.subtext}>
-        You have <Text style={{ color: '#FF5722' }}>2 Notifications</Text> today.
-      </Text>
 
-      {/* Today */}
-      <Text style={styles.section}>Today</Text>
-      {data.today.map(item => (
-        <NotificationItem key={item.id} item={item} />
-      ))}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        {isEmpty ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="notifications-off-outline" size={32} color={colors.textGray} />
+            <Text style={styles.emptyText}>You're all caught up</Text>
+          </View>
+        ) : (
+          <>
+            {data.today.length > 0 && (
+              <>
+                <Text style={styles.section}>Today</Text>
+                {data.today.map((item) => (
+                  <NotificationCard key={item.id} item={item} />
+                ))}
+              </>
+            )}
 
-      {/* This Week */}
-      <Text style={styles.section}>This Week</Text>
-      {data.thisWeek.map(item => (
-        <NotificationItem key={item.id} item={item} />
-      ))}
+            {data.thisWeek.length > 0 && (
+              <>
+                <Text style={styles.section}>This Week</Text>
+                {data.thisWeek.map((item) => (
+                  <NotificationCard key={item.id} item={item} />
+                ))}
+              </>
+            )}
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 };
+
+export default Notifications;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 16,
-    paddingTop:Platform.OS==='android'?StatusBar.currentHeight:50,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  time: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  indicators: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  signal: {
-    width: 15,
-    height: 10,
-    backgroundColor: '#000',
-    borderRadius: 2,
-  },
-  wifi: {
-    width: 12,
-    height: 10,
-    backgroundColor: '#000',
-    borderRadius: 2,
-  },
-  battery: {
-    width: 18,
-    height: 10,
-    backgroundColor: '#000',
-    borderRadius: 2,
+    padding: 16
   },
   titleWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    justifyContent: 'space-between',
+    marginBottom: 22,
   },
-  backArrow: {
-    fontSize: 20,
-    marginRight: 8,
+  backBtn: {
+    width: 32,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#444',
+    fontSize: 18,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: '#111',
   },
-  subtext: {
-    fontSize: 16,
-    color: '#888',
-    marginTop: 4,
-    marginBottom: 16,
+  clearAll: {
+    fontSize: 14,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: colors.primary,
   },
   section: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 24,
-    marginBottom: 8,
+    fontSize: 12,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginTop: 14,
+    marginBottom: 12,
   },
-  itemContainer: {
+  card: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    borderBottomColor: '#eee',
-    borderBottomWidth: 1,
-    gap: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
   },
   iconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FFEBEE',
-    justifyContent: 'center',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.greenLight,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  cardTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: '#111',
     marginRight: 8,
   },
-  notificationText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  amountText: {
-    color: '#FF5722',
-    fontWeight: 'bold',
-  },
-  textNormal: {
-    color: '#333',
-  },
   timeText: {
-    fontSize: 12,
-    color: '#aaa',
+    fontSize: 11,
+    fontFamily: 'OpenSans-Regular',
+    color: colors.textGray,
+  },
+  cardText: {
+    fontSize: 13,
+    fontFamily: 'OpenSans-Regular',
+    color: '#555',
+    lineHeight: 19,
     marginTop: 4,
   },
-  
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 80,
+    gap: 10,
+  },
+  emptyText: {
+    fontSize: 14,
+    fontFamily: 'OpenSans-Regular',
+    color: colors.textGray,
+  },
 });
-
-export default Notifications;

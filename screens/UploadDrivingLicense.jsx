@@ -8,6 +8,8 @@ import { useSelector } from 'react-redux'
 import { useState } from 'react'
 import useImagePicker from '../components/hooks/useImagePicker'
 import apiService from '../services/ApiService'
+import { colors } from '../constants/colors'
+import ButtonComp from '../components/common/ButtonComp'
 
 
 const UploadDrivingLicence = () => {
@@ -40,8 +42,10 @@ try {
     setLoading(true);
     const response = await apiService('/api/deliveryBoy/dlUpdate', 'PATCH', formData, {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
     });
-   if(response.data.status === "success") {
+    console.log("Response:", response);
+   if(response?.data?.status === "success") {
     setLoading(false);
     console.log("DL  submitted successfully:", response);
     alert("DL submitted successfully!");
@@ -58,7 +62,7 @@ try {
 }
     return (
         <View style={styles.container}>
-            <Header showicon={true} title={'Upload Driving Licenece '}/>
+            <Header showicon={false} title={'Upload Driving Licenece '}/>
             <ScrollView style={{ marginBottom: 10 }} showsVerticalScrollIndicator={false}>
                 <View style={{ padding: "5%", borderStyle: "dashed", borderBottomColor: "#D6D6D6", borderBottomWidth: 1 }}>
                     <Text
@@ -78,10 +82,19 @@ try {
                 </View>
                 <DLUpload pickImage={pickImage} setDlFront={setDlFront} DlFront={DlFront}/>
                 <UploadedDlCard setDlBack={setDlBack} pickImage={pickImage} DlBack={DlBack} />
-                <TouchableOpacity onPress={handleSubmit} style={{ marginVertical: "10%", backgroundColor: "#FA4A0C", borderRadius: 10, height: 50, display: "flex", justifyContent: "center", alignItems: "center", width: "80%", marginHorizontal: "auto" }}>
-                    {loading ? (<ActivityIndicator size="small" color="#fff" />) : <Text style={{ color: "#fff", fontSize: 16, fontFamily: "OpenSans-Medium", textAlign: "center", }}>Submit</Text>
-}
-                </TouchableOpacity>
+                    <ButtonComp
+            title="Submit"
+            onPress={handleSubmit}
+            bg={colors.primary}
+            color="#fff"
+            size={16}
+            fw="700"
+            ff="OpenSans-Bold"
+            ta="center"
+            height={54}
+            loading={loading}
+            mt={50}
+          />
             </ScrollView>
         </View>
     )
@@ -92,7 +105,8 @@ export default UploadDrivingLicence
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff"
+        backgroundColor: "#fff",
+        padding: 16,
     }
 })
 
@@ -100,7 +114,7 @@ const styles = StyleSheet.create({
 
 const DLUpload = ({pickImage, setDlFront, DlFront}) => {
     return (
-        <View style={{ marginTop: "10%", padding: "5%", width: "90%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
+        <View style={{ marginTop: "10%", padding: "5%", width: "100%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
             <View>
                 <Text
                     style={{
@@ -133,11 +147,11 @@ const DLUpload = ({pickImage, setDlFront, DlFront}) => {
                 }}
                 onPress={() => pickImage(setDlFront)}
                 >
-                    <Entypo name="image" size={20} color="#FA4A0C" />
+                    <Entypo name="image" size={20} color={colors.primary} />
                     <Text style={{
                         fontFamily: "OpenSans-Regular",
                         fontSize: 16,
-                        color: "#FA4A0C"
+                        color: colors.primary
                     }}>Upload Photo</Text>
                 </TouchableOpacity>
             </View>
@@ -147,7 +161,7 @@ const DLUpload = ({pickImage, setDlFront, DlFront}) => {
 
 const UploadedDlCard = ({setDlBack, DlBack,pickImage}) => {
     return (
-        <View style={{ marginTop: "10%", padding: "5%", width: "90%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
+        <View style={{ marginTop: "10%", padding: "5%", width: "100%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
             <View>
                <Text
                     style={{
@@ -180,11 +194,11 @@ const UploadedDlCard = ({setDlBack, DlBack,pickImage}) => {
                 }}
                 onPress={() => pickImage(setDlBack)}
                 >
-                     <Entypo name="image" size={20} color="#FA4A0C" />
+                     <Entypo name="image" size={20} color={colors.primary} />
                                        <Text style={{
                                            fontFamily: "OpenSans-Regular",
                                            fontSize: 16,
-                                           color: "#FA4A0C"
+                                           color: colors.primary
                                        }}>Upload Back</Text>
                 </TouchableOpacity>
             </View>

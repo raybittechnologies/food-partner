@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons'
+import { colors } from '../../constants/colors'
 
-const EarningsCard = () => {
+const EarningsCard = ({ totalEarnings = 4250, onDutyMinutes = 30, ordersCompleted = 28 }) => {
   const [startDate, setStartDate] = useState(getStartOfWeek(new Date()))
 
   function getStartOfWeek(date) {
@@ -37,31 +38,44 @@ const EarningsCard = () => {
     setStartDate(getStartOfWeek(newDate))
   }
 
+  const formatCurrency = (amount) =>
+    amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
   return (
-    <View style={styles.card}>
-      <View style={styles.row}>
-        <TouchableOpacity onPress={handlePrev}>
-          <Ionicons name="chevron-back" size={24} color="#fff" />
+    <View>
+      <View style={styles.dateRow}>
+        <TouchableOpacity onPress={handlePrev} style={styles.dateArrowBtn}>
+          <Ionicons name="chevron-back" size={18} color="#333" />
         </TouchableOpacity>
 
-        <View>
+        <View style={styles.dateLabelWrap}>
+          <Ionicons name="calendar-outline" size={15} color="#333" style={{ marginRight: 6 }} />
           <Text style={styles.date}>{formatDateRange(startDate)}</Text>
-          {/* <Text style={styles.week}>This week</Text> */}
         </View>
 
-        <TouchableOpacity onPress={handleNext}>
-          <Ionicons name="chevron-forward" size={24} color="#fff" />
+        <TouchableOpacity onPress={handleNext} style={styles.dateArrowBtn}>
+          <Ionicons name="chevron-forward" size={18} color="#333" />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.earningsSection}>
-        <Text style={styles.subHeading}>Total earnings</Text>
-        <Text style={styles.amount}>Rs 580</Text>
-        <Text style={styles.time}>30m on duty</Text>
-        <Image
-          source={{ uri: 'https://randomuser.me/api/portraits/men/75.jpg' }}
-          style={styles.avatar}
-        />
+      <View style={styles.card}>
+        <Text style={styles.subHeading}>Total Earnings</Text>
+        <Text style={styles.amount}>₹{formatCurrency(totalEarnings)}</Text>
+
+        <View style={styles.divider} />
+
+        <Text style={styles.dutyLabel}>ON DUTY</Text>
+        <Text style={styles.dutyValue}>{onDutyMinutes} min</Text>
+      </View>
+
+      <View style={styles.ordersCard}>
+        <View style={styles.ordersIconWrap}>
+          <Ionicons name="bag-handle-outline" size={18} color={colors.primary} />
+        </View>
+        <View>
+          <Text style={styles.ordersCount}>{ordersCompleted}</Text>
+          <Text style={styles.ordersLabel}>Orders Completed</Text>
+        </View>
       </View>
     </View>
   )
@@ -70,49 +84,97 @@ const EarningsCard = () => {
 export default EarningsCard
 
 const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 10,
-    padding: 16,
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
-  row: {
+  dateArrowBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E2E2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateLabelWrap: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
   date: {
-    fontSize: 16,
-    color: '#fff',
-    textAlign: 'center',
+    fontSize: 14,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: '#111',
   },
-  week: {
-    color: '#aaa',
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  earningsSection: {
-    marginTop: 16,
-    alignItems: 'center',
+  card: {
+    borderWidth: 1,
+    borderColor: colors.primary + '33',
+    backgroundColor: colors.primary + '14',
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 14,
   },
   subHeading: {
-    color: '#888',
+    color: '#6D6D6D',
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 13,
+    marginBottom: 6,
   },
   amount: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontSize: 26,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: '#111',
   },
-  time: {
-    color: '#aaa',
-    fontSize: 12,
+  divider: {
+    height: 1,
+    backgroundColor: colors.primary + '33',
+    marginVertical: 14,
   },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    position: 'absolute',
-    right: 10,
+  dutyLabel: {
+    color: '#8A8A8A',
+    fontFamily: 'OpenSans-Bold',
+    fontSize: 11,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  dutyValue: {
+    color: '#111',
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  ordersCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 14,
+  },
+  ordersIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary + '1F',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ordersCount: {
+    fontSize: 18,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: '#111',
+  },
+  ordersLabel: {
+    fontSize: 13,
+    fontFamily: 'OpenSans-Regular',
+    color: '#6D6D6D',
+    marginTop: 2,
   },
 })

@@ -1,11 +1,11 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import AntDesign from 'react-native-vector-icons/AntDesign'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import Entypo from 'react-native-vector-icons/Entypo'
 import Header from '../components/common/Header'
 import apiService from '../services/ApiService'
 import { useSelector } from 'react-redux'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import CompletedDoc from '../components/info/CompletedDocs'
 import PendingDoc from '../components/info/PendingDoc'
 const PersonalDocs = () => {
@@ -27,13 +27,15 @@ const [approved, setApproved] = useState([]);
         
     }
 }
-useEffect(()=>{
+useFocusEffect(
+  useCallback(() => {
     GetInfo();
-},[])
+  }, [])
+)
     return (
         <View style={styles.container}>
-            <Header title={'Upload Personal Documents'} showicon={true}/>
-            <View style={{paddingHorizontal: 16}}>
+            <Header title={'Upload Personal Documents'} showicon={false}/>
+
             <View style={{  marginTop: "5%" }}>
                 {pending.map((doc, index) => (
                     <PendingDoc key={index} title={doc} href={doc.toLowerCase().replace(/ /g, "-")} />
@@ -49,7 +51,7 @@ useEffect(()=>{
                         {approved.map((doc, index) => (
                             <CompletedDoc key={index} title={doc} href={doc.toLowerCase().replace(/ /g, "-")} navigation={navigation}/>
                         ))}
-                    </View>
+
                     </View>
         </View>
     )
@@ -59,7 +61,9 @@ export default PersonalDocs
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
+        padding: 16,
+        backgroundColor: "#fff"
     }
 })
 

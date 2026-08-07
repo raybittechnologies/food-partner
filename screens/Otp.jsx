@@ -2,18 +2,40 @@ import { Dimensions, Image, KeyboardAvoidingView, ScrollView, StyleSheet, Text, 
 const { height } = Dimensions.get("window")
 import { useNavigation } from '@react-navigation/native'
 import { OtpInput } from 'react-native-otp-entry'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import apiService from '../services/ApiService'
 import { useDispatch } from 'react-redux'
 import { setPhoneDetails, setToken } from '../redux/authSlice'
-
-
+import Button from '../components/signup/Button'
+import AntDesign from 'react-native-vector-icons/AntDesign'
+import { colors } from '../constants/colors'
+import ButtonComp from '../components/common/ButtonComp'
+import Heading from '../components/signup/Heading'
+const RESEND_SECONDS = 60;
 const Otp = ({route}) => {
     const dispatch = useDispatch();
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+      const [resending, setResending] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+
     const {phoneNumber} = route.params || {};
     const navigation = useNavigation()
     const [otp, setOtp] = useState("");
-console.log("OTP:", otp);
+// console.log("OTP:", otp);
+
+
+  useEffect(() => {
+    if (secondsLeft <= 0) return;
+    const timer = setInterval(() => {
+      setSecondsLeft(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [secondsLeft]);
+
+  const canResend = secondsLeft <= 0;
+  const formattedCountdown = `0:${secondsLeft.toString().padStart(2, '0')}`;
+
 
 const VerifyOtp=async()=>{
     // navigation.replace("onboarding", { phoneNumber });
@@ -22,6 +44,7 @@ const VerifyOtp=async()=>{
         return;
     }
    try {
+    setLoading(true);
     const response = await apiService(`/api/deliveryBoy/deliveryLogin/${phoneNumber}`, 'POST', { givenOTP: otp });
     console.log("Response:", response);
     if (response.data) {
@@ -30,34 +53,94 @@ const VerifyOtp=async()=>{
         dispatch(setToken(response.data.token))
         navigation.replace("onboarding");
     } else {
-        console.error("Failed to verify OTP:", response.error);
-        alert("Failed to verify OTP. Please try again later.");
+        setError(response.error || "Failed to verify OTP");
+        console.log("Failed to verify OTP:", response.error);
+        // alert("Failed to verify OTP. Please try again later.");
     }
    } catch (error) {
+    setError(error.message);
        console.error("Error verifying OTP:", error);
        alert("Failed to verify OTP. Please try again later.");
     
+   }finally {
+    setLoading(false);
    }
 
 }
 
 
-
+console.log("Phone Number:", phoneNumber);
     return (
-        <KeyboardAvoidingView
-            behavior={null}
-            keyboardVerticalOffset={50}
-            style={styles.container}>
-            <View>
-                <Image source={require("../assets/images/pana.png")} style={{ height: height * 0.35, width: "100%", resizeMode: "contain" }} />
-            </View>
-            <View
-                style={styles.bottomContainer}>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    <OtpForm navigation={navigation} setOtp={setOtp} VerifyOtp={VerifyOtp}/>
-                </ScrollView>
-            </View>
-        </KeyboardAvoidingView>
+     <KeyboardAvoidingView style={styles.container} behavior="height">
+    <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <AntDesign name="arrowleft" size={22} color="#000" />
+        </TouchableOpacity>
+
+        <View style={styles.logoWrapper}>
+          <Image
+            source={require('../assets/images/splash.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
+        <Heading
+          title="Verify Your Number"
+          subtitle="We've sent a 4-digit code to"
+        />
+        <Text style={{color: colors.text, fontSize: 16, textAlign: 'center'}}>+91 {phoneNumber} <Text style={{color: colors.primary, marginLeft: 5,fontWeight: 'bold',fontSize: 16}} onPress={()=>navigation.goBack()}> Change</Text></Text>
+
+         <OtpInputs setOtp={setOtp}   error={error} />
+
+         <Text style={{color: colors.text, fontSize: 16, textAlign: 'center', marginTop: 16}}>
+           {canResend ? 'You can resend the code now' : `Resend code in ${formattedCountdown}`}
+         </Text>
+
+ <View style={styles.footer}>
+
+         {/* <Text style={{color: colors.text, fontSize: 16, textAlign: 'center'}}>
+           Didn't receive code :
+           <Text
+             style={{
+               color: colors.primary,
+               marginLeft: 5,
+               fontWeight: 'bold',
+               fontSize: 16,
+               opacity: canResend ? 1 : 0.1,
+             }}
+             onPress={canResend ? handleResendOtp : undefined}
+           > Resend</Text>
+         </Text> */}
+        </View>
+        <View style={styles.form}>
+       
+
+           <ButtonComp
+            title=" Verify & Continue"
+            onPress={VerifyOtp}
+            bg={colors.primary}
+            color="#fff"
+            size={16}
+            fw="700"
+            ff="OpenSans-Bold"
+            ta="center"
+            height={54}
+            loading={loading}
+            mt={50}
+          />
+        </View>
+
+       
+      </ScrollView>
+  </KeyboardAvoidingView>
     )
 }
 
@@ -65,9 +148,14 @@ export default Otp
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        position: "relative"
-    },
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+  },
     bottomContainer: {
         flex: 1,
         position: "absolute",
@@ -106,70 +194,72 @@ const styles = StyleSheet.create({
         paddingLeft: "7%",
         paddingVertical: "2%",
         marginBottom: "1%"
-    }
+    },
+        otpWrapper: {
+        paddingHorizontal: 12,
+        paddingVertical: 24,
+    },
+    otpPinCodeContainer: {
+        backgroundColor: '#fff',
+        height: 60,
+        width: 60,
+    },
+    pinCodeText: {
+        color: colors.text,
+        fontWeight: '700',
+        fontSize: 32,
+        lineHeight: 45.12,
+        letterSpacing: 0.05,
+    },
+      backButton: {
+    marginTop: height * 0.02,
+    marginBottom: 16,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+  },
+  logoWrapper: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logo: {
+    width: 90,
+    height: 60,
+  },
+  form: {
+    marginTop: 24,
+  },
 })
 
-const OtpForm = ({ navigation,setOtp,VerifyOtp }) => {
-    return (
-        <ScrollView>
-            <Heading />
-            <SecondaryHeading />
-            <OtpInputs setOtp={setOtp}/>
-            <Option />
-            <ButtonComponent VerifyOtp={VerifyOtp}/>
-        </ScrollView>
-    )
-}
 
 
 
-const Heading = () => {
-    return (
-        <Text style={{ color: "#fff", fontSize: 40, fontFamily: "OpenSans-Bold", lineHeight: 54, textAlign: "center", paddingVertical: "2%" }}>Verify OTP</Text>
-    )
-}
 
-const SecondaryHeading = () => {
-    return (
-        <View
-            style={{
-                maxWidth: "70%",
-                marginHorizontal: "auto"
-            }}
-        >
-            <Text style={{ textAlign: "center", color: "#fff", fontSize: 20, fontFamily: "OpenSans-Regular", lineHeight: 27 }}>OTP sent!</Text>
-            <Text style={{ textAlign: "center", color: "#fff", fontSize: 20, fontFamily: "OpenSans-Regular", lineHeight: 27 }}>Secure your taste journey,
-                one code at a time!</Text>
-        </View>
-    )
-}
 
-const OtpInputs = ({ setOtp }) => {
+
+
+const OtpInputs = ({ setOtp,error }) => {
     return (
         <View style={styles.otpWrapper}>
             <OtpInput
-                focusColor={"#fff"} theme={{
+                focusColor={colors.primary}
+                theme={{
                     pinCodeContainerStyle: styles.otpPinCodeContainer,
-                    pinCodeTextStyle: styles.pinCodeText
-                }} numberOfDigits={4} onTextChange={setOtp} />
+                    pinCodeTextStyle: styles.pinCodeText,
+                }}
+                numberOfDigits={4}
+                onTextChange={text => setOtp(text)}
+            />
+             {error ? (
+                <Text style={{
+                    color: "#ff5555",
+                    fontFamily: "OpenSans-Regular",
+                    fontSize: 12,
+                    marginTop: 5,
+                }}>{error}</Text>
+            ) : null}
         </View>
-    )
-}
+    );
+};
 
-const Option = () => {
-    return (
-        <View style={styles.optionWrapper}>
-            <Text style={{ color: "#fff", fontSize: 16, fontFamily: "OpenSans-Regular", lineHeight: 21 }}>Didn’t get the code? Resend in: </Text>
-            <Text style={{ color: "#FA4A0C", fontSize: 16, fontFamily: "OpenSans-Medium", lineHeight: 21 }}>0.59</Text>
-        </View>
-    )
-}
 
-const ButtonComponent = ({VerifyOtp}) => {
-    const navigation = useNavigation()
-    return (
-        <TouchableOpacity onPress={VerifyOtp} style={{ backgroundColor: "#FA4A0C", padding: "4%", borderRadius: 10, width: "80%", alignItems: "center", marginHorizontal: "auto", marginTop: "2%" }}>
-            <Text style={{ color: "#fff", fontSize: 16, fontWeight: "500", fontFamily: "OpenSans-Medium" }}>Continue</Text>
-        </TouchableOpacity>
-    )
-}

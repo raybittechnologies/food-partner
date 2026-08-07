@@ -1,6 +1,7 @@
 // components/common/SuccessModal.js
 import React from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { colors } from '../../constants/colors';
 
 const SuccessModal = ({ visible, message, onClose }) => {
   return (
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
     color: '#202020',
   },
   button: {
-    backgroundColor: '#FA4A0C',
+    backgroundColor: colors.primary,
     paddingHorizontal: 25,
     paddingVertical: 10,
     borderRadius: 8,

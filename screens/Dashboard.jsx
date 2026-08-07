@@ -3,7 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import Home from '../tabs/Home'
 import Account from '../tabs/Account'
 import AntDesign from 'react-native-vector-icons/AntDesign'
-import IonIcons from 'react-native-vector-icons/Ionicons'
+import Feather from 'react-native-vector-icons/Feather'
+import Octicons from 'react-native-vector-icons/SimpleLineIcons'
 import { useOrder } from '../context/OrderContext'
 import { useNavigation } from '@react-navigation/native'
 import { useEffect } from 'react'
@@ -11,6 +12,7 @@ import { useEffect } from 'react'
 import Earnings from '../tabs/Earnings'
 import Wallet from 'react-native-vector-icons/SimpleLineIcons'
 import Orders from '../tabs/Orders'
+import { colors } from '../constants/colors'
 const Tab = createBottomTabNavigator()
 
 const Dashboard = () => {
@@ -26,7 +28,7 @@ const Dashboard = () => {
         <Tab.Navigator
         // initialRouteName={initialRoute}
             screenOptions={{
-                tabBarActiveTintColor: "#FA4A0C",
+                tabBarActiveTintColor: colors.primary,
                 tabBarInactiveTintColor: "#202020",
                 tabBarLabelStyle: {
                     fontFamily: "OpenSans-Medium",
@@ -41,7 +43,7 @@ const Dashboard = () => {
         >
             <Tab.Screen name='home' component={Home} options={{
                 headerShown: false,
-                tabBarIcon: ({ size, color, focused }) => (
+                tabBarIcon: ({  color, focused }) => (
                     <View style={{
                         backgroundColor: focused ? "#E8DEF8" : "#fff",
                         height: 32,
@@ -51,13 +53,13 @@ const Dashboard = () => {
                         justifyContent: "center",
                         alignItems: "center", borderRadius: 16,
                     }}>
-                        <AntDesign name="home" size={size} color={color} />
+                        <AntDesign name="home" size={20} color={color} />
                     </View>
                 )
             }} />
             <Tab.Screen name='earnings' component={Earnings} options={{
                 headerShown: false,
-                tabBarIcon: ({ size, color, focused }) => (
+                tabBarIcon: ({ color, focused }) => (
                     <View style={{
                         backgroundColor: focused ? "#E8DEF8" : "#fff",
                         height: 32,
@@ -67,13 +69,13 @@ const Dashboard = () => {
                         justifyContent: "center",
                         alignItems: "center", borderRadius: 16,
                     }}>
-                        <Wallet name="wallet" size={size} color={color} />
+                        <Wallet name="wallet" size={20} color={color} />
                     </View>
                 )
             }} />
-             <Tab.Screen name='My Orders' component={Orders} options={{
+             <Tab.Screen name='Orders' component={Orders} options={{
                 headerShown: false,
-                tabBarIcon: ({ size, color, focused }) => (
+                tabBarIcon: ({  color, focused }) => (
                     <View style={{
                         backgroundColor: focused ? "#E8DEF8" : "#fff",
                         height: 32,
@@ -83,13 +85,13 @@ const Dashboard = () => {
                         justifyContent: "center",
                         alignItems: "center", borderRadius: 16,
                     }}>
-                        <AntDesign name="calendar" size={size} color={color} />
+                        <Octicons name="basket" size={20} color={color} />
                     </View>
                 )
             }} />
-             <Tab.Screen name='account' component={Account} options={{
+             <Tab.Screen name='Profile' component={Account} options={{
                 headerShown: false,
-                tabBarIcon: ({ size, color, focused }) => (
+                tabBarIcon: ({  color, focused }) => (
                     <View style={{
                         backgroundColor: focused ? "#E8DEF8" : "#fff",
                         height: 32,
@@ -99,7 +101,7 @@ const Dashboard = () => {
                         justifyContent: "center",
                         alignItems: "center", borderRadius: 16,
                     }}>
-                        <IonIcons name="person-circle-outline" size={size} color={color} />
+                        <Feather name="user" size={20} color={color} />
                     </View>
                 )
             }} />

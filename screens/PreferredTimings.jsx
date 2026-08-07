@@ -1,169 +1,295 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import AntDesign from 'react-native-vector-icons/AntDesign'
+import Feather from 'react-native-vector-icons/Feather'
 import { useNavigation } from '@react-navigation/native'
-import RadioButton from 'react-native-radio-button'
 import { useState } from 'react'
-import Header from '../components/common/Header'
 import { useSelector } from 'react-redux'
 import apiService from '../services/ApiService'
+import { colors } from '../constants/colors'
+import ButtonComp from '../components/common/ButtonComp'
+
+// Local theme for this screen (matches the design spec)
+const theme = {
+    green: '#5B8C6E',
+    greenDark: '#4F7A5D',
+    greenLight: '#EAF3EC',
+    badgeBg: '#DCEEE0',
+    border: '#E2E2E2',
+    textGray: '#6D6D6D',
+}
+
+const SCHEDULES = [
+    {
+        key: 'full_time',
+        heading: 'Full Time',
+        badge: 'Recommended',
+        schedule: 'Mon–Sat • Minimum 9 Hours Daily',
+        earning: '₹4,000',
+        highlight: true,
+    },
+    {
+        key: 'part_time',
+        heading: 'Part Time',
+        badge: null,
+        schedule: 'Flexible 4–6 Hours Daily',
+        earning: '₹2,500',
+        highlight: false,
+    },
+    {
+        key: 'weekends',
+        heading: 'Weekend Only',
+        badge: "Students' Choice",
+        schedule: 'Friday • Saturday • Sunday',
+        earning: null,
+        note: 'Ideal pocket-money option',
+        highlight: false,
+    },
+]
 
 const PreferredTimings = () => {
     const [loading, setLoading] = useState(false)
-    const { token } = useSelector((state) => state.auth);
-    const [workPref, setWorkPref] = useState(null)
+    const { token } = useSelector((state) => state.auth)
+    const [workPref, setWorkPref] = useState('full_time')
     const navigation = useNavigation()
 
-
-const handlecontinue = async () => {
-    if (!workPref) {
-        alert("Please select your preferred work timings");
-        return;
+    const handlecontinue = async () => {
+        if (!workPref) {
+            alert('Please select your preferred work timings')
+            return
+        }
+        setLoading(true)
+        try {
+            const response = await apiService('/api/deliveryBoy/workUpdate', 'PATCH', { type: workPref }, {
+                Authorization: `Bearer ${token}`,
+            })
+            if (response.data.status === 'success') {
+                console.log('Work preference updated successfully:', response.data)
+                alert('Your work preference has been saved successfully!')
+            } else {
+                alert('Failed to save your preferences. Please try again later.')
+            }
+        } catch (error) {
+            console.error('Error in handlecontinue:', error)
+            alert('An error occurred while saving your preferences. Please try again later.')
+        } finally {
+            setLoading(false)
+        }
     }
-   try {
-    const response =await apiService('/api/deliveryBoy/workUpdate', 'PATCH', { type: workPref }, {
-        Authorization: `Bearer ${token}`,
-    });
-    if (response.data.status === "success") {
-        setLoading(false);
-        console.log("Work preference updated successfully:", response.data);
-        alert("Your work preference has been saved successfully!");
-        
-    } else {
-        alert("Failed to save your preferences. Please try again later.");
-    }
-   } catch (error) {
-       console.error("Error in handlecontinue:", error);
-       alert("An error occurred while saving your preferences. Please try again later.");
-    
-   }finally {
-       setLoading(false);
-   }
 
-}
     return (
         <View style={styles.container}>
-            <Header title={"Select your preferred work Timings"} showicon={true}/>
-            <View>
-                <Text
-                    style={{
-                        fontFamily: "OpenSans-Regular",
-                        maxWidth: "75%",
-                        marginHorizontal: "auto",
-                        marginVertical: "3%",
-                        textAlign: "center",
-                        fontSize: 14,
-                        lineHeight: 21,
-                        letterSpacing: 0.05
-                    }}
-                >
-                    Your Selection will be valid for 30 days. You
-                    can change your preferences after that.
-                </Text>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <AntDesign name="arrowleft" size={22} color="#000" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Select Schedule</Text>
+                <View style={styles.backBtn} />
             </View>
-            <View style={{ marginTop: "10%" }}>
-                <TimingCard
-                    heading={"Full Time | All days"}
-                    data={'full_time'}
-                    secondaryHeading={"6 days a week"}
-                    workPref={workPref}
-                    setWorkPref={setWorkPref}
-                />
-                <TimingCard
-                    heading={"Part Time | 4-6 hours"}
-                    data={'part_time'}
-                    secondaryHeading={"6 days a week"}
-                    workPref={workPref}
-                    setWorkPref={setWorkPref}
-                />
-                <TimingCard
-                    heading={"Part Time | Weekends Only"}
-                    data={'weekends'}
-                    secondaryHeading={"Fri, Sat, Sun."}
-                    workPref={workPref}
-                    setWorkPref={setWorkPref}
-                />
+
+            <Text style={styles.subtitle}>
+                Select the schedule that works best for you. You can update it after 30 days.
+            </Text>
+
+            <View style={styles.list}>
+                {SCHEDULES.map((item) => (
+                    <TimingCard
+                        key={item.key}
+                        item={item}
+                        selected={workPref === item.key}
+                        onPress={() => setWorkPref(item.key)}
+                    />
+                ))}
             </View>
-            <TouchableOpacity onPress={handlecontinue} style={{ marginTop: "15%", width: "90%", height: 64, marginHorizontal: "auto", backgroundColor: "#FA4A0C", padding: 10, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {loading ? (<ActivityIndicator size={"small"} color={"#fff"} />) : (<Text style={{ color: "#fff", fontSize: 24, fontFamily: "OpenSans-Regular" }}>Continue</Text>)}
-            </TouchableOpacity>
+
+               <ButtonComp
+            title="Continue"
+            onPress={handlecontinue}
+            bg={colors.primary}
+            color="#fff"
+            size={16}
+            fw="700"
+            ff="OpenSans-Bold"
+            ta="center"
+            height={54}
+            loading={loading}
+            mt={50}
+          />
+
         </View>
     )
 }
 
 export default PreferredTimings
 
+const TimingCard = ({ item, selected, onPress }) => {
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            activeOpacity={0.85}
+            style={[styles.card, selected && styles.cardSelected]}
+        >
+            <View style={styles.cardRow}>
+                <View style={styles.cardHeadingRow}>
+                    <Text style={styles.cardHeading}>{item.heading}</Text>
+                    {item.badge ? (
+                        <View style={styles.badge}>
+                            <Text style={styles.badgeText}>{item.badge}</Text>
+                        </View>
+                    ) : null}
+                </View>
+                <View style={[styles.radioOuter, selected && styles.radioOuterSelected]}>
+                    {selected ? <View style={styles.radioInner} /> : null}
+                </View>
+            </View>
+
+            <Text style={styles.cardSchedule}>{item.schedule}</Text>
+
+            {item.earning ? (
+                <View style={styles.earningRow}>
+                    {selected ? (
+                        <Feather name="trending-up" size={14} color={theme.greenDark} style={{ marginRight: 6 }} />
+                    ) : null}
+                    <Text style={[styles.earningText, selected && styles.earningTextSelected]}>
+                        Earn up to {item.earning}/week
+                    </Text>
+                </View>
+            ) : (
+                <Text style={styles.note}>{item.note}</Text>
+            )}
+        </TouchableOpacity>
+    )
+}
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff"
-    }
+        backgroundColor: '#fff',
+        paddingHorizontal: 20,
+        paddingTop: 16,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 20,
+    },
+    backBtn: {
+        width: 32,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        color: '#111',
+    },
+    subtitle: {
+        fontFamily: 'OpenSans-Regular',
+        fontSize: 15,
+        lineHeight: 22,
+        color: '#333',
+        marginBottom: 24,
+    },
+    list: {
+        gap: 14,
+    },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 14,
+        borderWidth: 1.5,
+        borderColor: theme.border,
+        padding: 18,
+        marginBottom: 14,
+    },
+    cardSelected: {
+        borderColor: theme.green,
+        backgroundColor: theme.greenLight,
+    },
+    cardRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    cardHeadingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    cardHeading: {
+        fontSize: 17,
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+        color: '#111',
+    },
+    badge: {
+        backgroundColor: theme.badgeBg,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+    },
+    badgeText: {
+        fontSize: 11,
+        fontFamily: 'OpenSans-Medium',
+        color: theme.greenDark,
+    },
+    radioOuter: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 1.5,
+        borderColor: '#C6C6C6',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    radioOuterSelected: {
+        borderColor: theme.green,
+    },
+    radioInner: {
+        width: 11,
+        height: 11,
+        borderRadius: 6,
+        backgroundColor: theme.green,
+    },
+    cardSchedule: {
+        fontSize: 14,
+        fontFamily: 'OpenSans-Regular',
+        color: '#444',
+        marginTop: 10,
+    },
+    earningRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 6,
+    },
+    earningText: {
+        fontSize: 14,
+        fontFamily: 'OpenSans-Regular',
+        color: theme.textGray,
+    },
+    earningTextSelected: {
+        color: theme.greenDark,
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+    },
+    note: {
+        fontSize: 14,
+        fontFamily: 'OpenSans-Regular',
+        color: theme.textGray,
+        marginTop: 6,
+    },
+    continueBtn: {
+        marginTop: 8,
+        marginBottom: 24,
+        width: '100%',
+        height: 58,
+        backgroundColor: theme.green,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    continueText: {
+        color: '#fff',
+        fontSize: 18,
+        fontFamily: 'OpenSans-Bold',
+        fontWeight: '700',
+    },
 })
-
-
-
-
-const TimingCard = ({ heading, secondaryHeading, workPref, setWorkPref,data }) => {
-
-    return (
-        <View style={{
-            backgroundColor: "#fff",
-            elevation: 1,
-            width: "90%",
-            marginHorizontal: "auto",
-            padding: "5%",
-            borderRadius: 10,
-            marginVertical: "3%",
-            borderColor: "#6D6D6D80",
-            borderWidth: 1
-        }}>
-            <View style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
-                <View>
-                    <RadioButton
-                        animation={'bounceIn'}
-                        isSelected={data === workPref}
-                        onPress={() => setWorkPref(data)}
-                        size={8}
-                        innerColor={data === workPref ? "#FA4A0C" : "#fff"}
-                        outerColor={"#000"}
-                    />
-                </View>
-                <View>
-                    <Text style={{
-                        fontSize: 14,
-                        fontFamily: "OpenSans-Bold",
-                        marginLeft: 10,
-                        lineHeight: 19
-                    }}>
-                        {heading}
-                    </Text>
-                </View>
-            </View>
-            <View>
-                <Text style={{
-                    fontSize: 12,
-                    fontFamily: "OpenSans-Regular",
-                    marginLeft: 18,
-                    lineHeight: 17
-
-                }}>{secondaryHeading}</Text>
-            </View>
-            <View>
-                <Text style={{
-                    fontSize: 14,
-                    fontFamily: "OpenSans-Regular",
-                    marginLeft: 18,
-                    lineHeight: 18
-                }}>Upto
-                    <Text style={{
-                        fontSize: 14,
-                        fontFamily: "OpenSans-Medium",
-                        marginLeft: 18,
-                        lineHeight: 18,
-                        color: "#FA4A0C",
-
-                    }}>{" "}4000{" "}</Text>
-                    Weekly Earnings</Text>
-            </View>
-        </View>
-    )
-}

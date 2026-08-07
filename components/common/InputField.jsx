@@ -16,7 +16,7 @@ const InputField = ({ placeholder, label, value, onChangeText }) => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View
           style={{
-            width: '90%',
+            width: '100%',
             alignSelf: 'center',
             marginTop: '5%',
           }}>
