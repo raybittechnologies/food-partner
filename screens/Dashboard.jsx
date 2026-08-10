@@ -13,11 +13,19 @@ import Earnings from '../tabs/Earnings'
 import Wallet from 'react-native-vector-icons/SimpleLineIcons'
 import Orders from '../tabs/Orders'
 import { colors } from '../constants/colors'
+import { useSocket } from '../context/sockets'
 const Tab = createBottomTabNavigator()
 
 const Dashboard = () => {
     const navigation = useNavigation()
-//     const { newOrder, } = useOrder();
+    const { socket, } = useSocket();
+    console.log("Socket in Dashboard:", socket.id);
+
+useEffect(() => {
+    console.log("Socket in Dashboard useEffect:", socket.id);
+},[socket])
+
+
 // const initialRoute = route?.params?.screen ?? 'home';
 //     useEffect(() => {
 //         if (newOrder) {

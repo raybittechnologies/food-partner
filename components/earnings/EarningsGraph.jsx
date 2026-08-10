@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet, Dimensions } from 'react-native'
 
 import { colors } from '../../constants/colors'
-import { BarChart } from 'react-native-gifted-charts'
+import { BarChart } from 'react-native-chart-kit'
 
 const { width } = Dimensions.get('window')
 
@@ -19,36 +19,51 @@ const EarningsGraph = ({
 }) => {
   const chartWidth = width - 80
 
-  const barData = data.map((d) => ({
-    value: d.value,
-    label: d.label,
-    topLabelComponent: () =>
-      d.value > 0 ? (
-        <Text style={styles.barTopLabel}>₹{d.value}</Text>
-      ) : null,
-    frontColor: colors.primary,
-  }))
+  const chartData = {
+    labels: data.map((d) => d.label),
+    datasets: [
+      {
+        data: data.map((d) => d.value),
+      },
+    ],
+  }
+
+  const chartConfig = {
+    backgroundColor: '#FFFFFF',
+    backgroundGradientFrom: '#FFFFFF',
+    backgroundGradientTo: '#FFFFFF',
+    decimalPlaces: 0,
+    color: () => colors.primary,
+    labelColor: () => '#8A8A8A',
+    fillShadowGradient: colors.primary,
+    fillShadowGradientOpacity: 1,
+    barPercentage: 0.6,
+    propsForBackgroundLines: {
+      stroke: 'transparent',
+    },
+    propsForLabels: {
+      fontFamily: 'OpenSans-Regular',
+      fontSize: 12,
+    },
+  }
 
   return (
     <View style={styles.card}>
       <Text style={styles.heading}>Earnings Overview</Text>
       <View style={styles.chartWrap}>
         <BarChart
-          data={barData}
+          data={chartData}
           width={chartWidth}
           height={160}
-          barWidth={22}
-          spacing={18}
-          initialSpacing={12}
-          barBorderRadius={5}
-          hideRules
-          xAxisThickness={1}
-          xAxisColor="#E5E5E5"
-          yAxisThickness={0}
-          hideYAxisText
-          noOfSections={4}
-          xAxisLabelTextStyle={styles.xAxisLabel}
-          disablePress
+          yAxisLabel="₹"
+          yAxisSuffix=""
+          chartConfig={chartConfig}
+          fromZero
+          showValuesOnTopOfBars
+          withInnerLines={false}
+          withHorizontalLabels={false}
+          withVerticalLabels
+          style={styles.chart}
         />
       </View>
     </View>
@@ -73,17 +88,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   chartWrap: {
-    marginLeft: -8,
+    marginLeft: -20,
+    alignItems: 'center',
+
   },
-  barTopLabel: {
-    fontSize: 10,
-    fontFamily: 'OpenSans-Regular',
-    color: '#555',
-    marginBottom: 2,
-  },
-  xAxisLabel: {
-    color: '#8A8A8A',
-    fontSize: 12,
-    fontFamily: 'OpenSans-Regular',
+  chart: {
+    borderRadius: 16,
   },
 })
