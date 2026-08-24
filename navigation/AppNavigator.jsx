@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, Text, View } from 'react-native'
+import { Alert, AppState, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import DeliveryLanding from '../screens/Landing';
@@ -27,9 +27,7 @@ import Notifications from '../screens/profile/Notifications';
 import Tracking from '../screens/Tracking';
 import WalletScreen from '../screens/profile/WalletScreen';
 import Transactions from '../screens/profile/Transactions';
-import apiService from '../services/ApiService';
-import { clearOrder, setSubmitOrder } from '../redux/authSlice';
-import SubmitOrderModal from '../components/order/SubmitOrder';
+
 const Stack = createNativeStackNavigator();
 
 const SPLASH_DURATION = 2000;
@@ -71,40 +69,8 @@ useEffect(() => {
 }, [newOrder, dispatchOrder]);
 
 
- const handleArrived = async () => {
-      try {
-        const res=  await apiService(
-        `/api/deliveryBoy/arrivedOrder?order_id=${order?.order_id}`,
-        'PATCH',
-        null,
-        { Authorization: `Bearer ${token}` },
-      );
-      console.log(res)
-      // dispatch(setSubmitOrder(false));
-      
-      } catch (error) {
-        console.log(error)
-      }
-    
-  };
 
-  const handleSubmit = async () => {
-    try {
-   const res=  await apiService(
-        `/api/deliveryBoy/deliverOrder?order_id=${order?.order_id}`,
-        'PATCH',
-        null,
-        { Authorization: `Bearer ${token}` },
-      );
-      console.log(res)
-      dispatch(setSubmitOrder(false));
-      dispatch(clearOrder());
-      navigation.navigate('dashboard', { screen: 'Home' });
-    } catch (err) {
-      console.error('Failed to complete order:', err);
-      Alert.alert('Error', 'Failed to submit the order. Please try again.');
-    }
-  };
+
 
 
   return (

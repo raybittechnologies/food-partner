@@ -20,6 +20,7 @@ import { clearOrder, setDelivery, setIsOnline } from '../redux/authSlice'
 import { useLocation } from '../components/tracking/LocationProvider'
 import { useSocket } from '../context/sockets'
 import ButtonComp from '../components/common/ButtonComp'
+import notifee, { AndroidImportance } from '@notifee/react-native';
 
 // ---- Mock data (swap these for real props / redux selectors later) ----
 const performanceStats = [
@@ -155,6 +156,29 @@ useEffect(() => {
     })
 },[])
 
+  async function onDisplayNotification() {
+    // Request permissions (required for iOS)
+    await notifee.requestPermission()
+
+    // Create a channel (required for Android)
+    const channelId = await notifee.createChannel({
+      id: 'default',
+      name: 'Default Channel',
+      importance: AndroidImportance.HIGH,
+    });
+    await notifee.displayNotification({
+      title: 'Notification Title',
+      body: 'Main body content of the notification',
+      android: {
+        channelId,
+        smallIcon: 'ic_launcher', // optional, defaults to 'ic_launcher'.
+        // pressAction is needed if you want the notification to open the app when pressed
+        pressAction: {
+          id: 'default',
+        },
+      },
+    });
+  }
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -172,10 +196,12 @@ useEffect(() => {
                         <TouchableOpacity style={styles.bellButton} onPress={() => navigation.navigate('notifications')}>
                             <Ionicons name="notifications-outline" size={20} color="#202020" />
                         </TouchableOpacity>
+                        <TouchableOpacity onPress={() => onDisplayNotification()}>
                         <Image
                             source={{ uri: 'https://i.pravatar.cc/100?img=12' }}
                             style={styles.avatar}
                         />
+                        </TouchableOpacity>
                     </View>
                 </View>
 
