@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View, Image, ScrollView } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -17,10 +17,11 @@ const theme = {
 
 const COUNTDOWN_SECONDS = 60
 
-const OrderRequest = ({ route }) => {
-    const { status } = route.params || {};
+const OrderRequest = () => {
+    const [isAccepting, setIsAccepting] = useState(false);
     const navigation = useNavigation()
     const dispatch = useDispatch();
+    const { setDispatchOrder } = useSocket()
     const { order, token } = useSelector((state) => state.auth);
     const { setIsNewOrder, setNewOrder } = useSocket();
 
@@ -28,21 +29,17 @@ const OrderRequest = ({ route }) => {
 
     const handleOrder = async () => {
         try {
-            const url =
-                status === 'dispatched'
-                    ? `/api/deliveryBoy/confirmOrder?order_id=${order?.order_id}`
-                    : `/api/deliveryBoy/acceptOrder?order_id=${order?.order_id}`;
+            const res = await apiService(
+                `/api/deliveryBoy/acceptOrder?order_id=${order?.order_id}`,
+                "PATCH",
+                null,
+                { Authorization: `Bearer ${token}` },
+            );
 
-            const res = await apiService(url, "PATCH", null, {
-                Authorization: `Bearer ${token}`,
-            });
-
-            console.log("Order processed successfully:", res);
-            if (res.data?.status === 'on the way') {
-                navigation.replace("dashboard", { screen: "Home" });
-                dispatch(setDelivery("delivering"))
-            } else if (res.data?.status === 'accepted') {
-                navigation.replace("dashboard", { screen: "Home" });
+            console.log("Order accepted successfully:", res);
+            if (res.data?.status === 'accepted') {
+                dispatch(setDelivery(""))
+                navigation.replace("Tracking");
             } else {
                 Alert.alert("Error", "Failed to process the order. Please try again.");
             }
@@ -55,10 +52,13 @@ const OrderRequest = ({ route }) => {
     const handleTimeOut = () => {
         dispatch(clearOrder())
         setNewOrder(false)
+        dispatch(setDelivery(""))
+        setDispatchOrder(true)
         navigation.replace("dashboard", { screen: "Home" });
     }
 
     const handleAccept = () => {
+        setIsAccepting(true);
         handleOrder();
         setNewOrder(false);
         setIsNewOrder(true)
@@ -68,9 +68,9 @@ const OrderRequest = ({ route }) => {
         handleTimeOut();
     };
 
-    // Countdown ticker (only relevant while waiting for the boy to accept, not while dispatched)
+    // Countdown ticker
     useEffect(() => {
-        if (status === "dispatched") return;
+        if (isAccepting) return;
 
         if (timeLeft <= 0) {
             handleTimeOut();
@@ -78,121 +78,110 @@ const OrderRequest = ({ route }) => {
         }
         const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
         return () => clearTimeout(id);
-    }, [timeLeft, status]);
+    }, [timeLeft, isAccepting]);
 
-    const pickupKm = !status ? order?.delivery_boy_route?.to_restaurant?.total_distance : 0;
-    const dropKm = order?.delivery_boy_route?.full_journey?.total_distance;
+    const pickupKm = (order?.delivery_boy_route?.to_restaurant?.distanceValue ?? 0) / 1000;
+    const dropKm = ((order?.delivery_boy_route?.full_journey?.distanceValue ?? 0) / 1000) - pickupKm;
 
     return (
         <View style={styles.container}>
-            <View style={styles.mapWrap}>
-                <View style={styles.mapCircle}>
-                    <Image
-                        source={require("../assets/images/map.png")}
-                        style={styles.mapImage}
-                    />
-                </View>
-                {status !== "dispatched" && (
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                <View style={styles.mapWrap}>
+                    <View style={styles.mapCircle}>
+                        <Image
+                            source={require("../assets/images/map.png")}
+                            style={styles.mapImage}
+                        />
+                    </View>
                     <View style={styles.timerBadge}>
                         <Text style={styles.timerText}>{timeLeft}s</Text>
                     </View>
-                )}
-            </View>
-
-            {status !== "dispatched" ? (
-                <>
-                    <Text style={styles.title}>🚀 New Delivery Request</Text>
-                    <Text style={styles.subtitle}>You have received a nearby pickup.</Text>
-                </>
-            ) : (
-                <>
-                    <Text style={styles.title}>🛵 Confirm Pickup</Text>
-                    <Text style={styles.subtitle}>Confirm that you've picked up this order.</Text>
-                </>
-            )}
-
-            {/* Estimated earnings card */}
-            <View style={styles.card}>
-                <Text style={styles.cardLabel}>💰  ESTIMATED EARNINGS</Text>
-                <Text style={styles.earnings}>₹{order?.del_amount ?? '0.00'}</Text>
-                <View style={styles.divider} />
-                <View style={styles.distanceRow}>
-                    <View style={styles.distanceItem}>
-                        <Ionicons name="location-outline" size={16} color={theme.green} />
-                        <Text style={styles.distanceText}>
-                            Pickup: <Text style={styles.distanceValue}>{pickupKm} km</Text>
-                        </Text>
-                    </View>
-                    <View style={styles.vDivider} />
-                    <View style={styles.distanceItem}>
-                        <Ionicons name="flag-outline" size={16} color={theme.green} />
-                        <Text style={styles.distanceText}>
-                            Dropoff: <Text style={styles.distanceValue}>{dropKm} km</Text>
-                        </Text>
-                    </View>
                 </View>
-            </View>
 
-            {/* Pickup from card */}
-            <View style={styles.card}>
-                <Text style={styles.cardLabelRow}>
-                    <Ionicons name="cart-outline" size={13} color={theme.labelGray} />  PICKUP FROM
-                </Text>
-                <Text style={styles.restaurantName}>{order?.restaurant_name}</Text>
-                <Text style={styles.address}>
-                    {order?.street}{order?.landmark ? `, ${order?.landmark}` : ''}{order?.area ? `, ${order?.area}` : ''}
-                </Text>
-                <View style={styles.pillRow}>
-                    <View style={styles.pill}>
-                        <Ionicons name="time-outline" size={14} color="#333" />
-                        <Text style={styles.pillText}>
-                            Ready in {order?.delivery_boy_route?.to_restaurant?.estimated_time ?? '—'} min
-                        </Text>
-                    </View>
-                    {order?.restaurant_rating ? (
-                        <View style={styles.pill}>
-                            <Ionicons name="star" size={14} color="#E3B341" />
-                            <Text style={styles.pillText}>{order?.restaurant_rating} Rating</Text>
+                <Text style={styles.title}>🚀 New Delivery Request</Text>
+                <Text style={styles.subtitle}>You have received a nearby pickup.</Text>
+
+                {/* Estimated earnings card */}
+                <View style={styles.card}>
+                    <Text style={styles.cardLabel}>💰  ESTIMATED EARNINGS</Text>
+                    <Text style={styles.earnings}>₹{order?.del_amount ?? '0.00'}</Text>
+                    <View style={styles.divider} />
+                    <View style={styles.distanceRow}>
+                        <View style={styles.distanceItem}>
+                            <Ionicons name="location-outline" size={16} color={theme.green} />
+                            <Text style={styles.distanceText}>
+                                Pickup: <Text style={styles.distanceValue}>{pickupKm} km</Text>
+                            </Text>
                         </View>
-                    ) : null}
-                </View>
-            </View>
-
-            {/* Delivery route card */}
-            <View style={styles.card}>
-                <Text style={styles.cardLabel}>DELIVERY ROUTE</Text>
-                <View style={styles.routeRow}>
-                    <View style={styles.routeDotCol}>
-                        <View style={styles.routeDot} />
-                        <View style={styles.routeLine} />
-                    </View>
-                    <View style={styles.routeTextCol}>
-                        <Text style={styles.routeTitle}>{order?.restaurant_name}</Text>
-                        <Text style={styles.routeSubtitle}>Pickup Location</Text>
+                        <View style={styles.vDivider} />
+                        <View style={styles.distanceItem}>
+                            <Ionicons name="flag-outline" size={16} color={theme.green} />
+                            <Text style={styles.distanceText}>
+                                Total: <Text style={styles.distanceValue}>{dropKm} km</Text>
+                            </Text>
+                        </View>
                     </View>
                 </View>
-                <View style={styles.routeRow}>
-                    <View style={styles.routeDotCol}>
-                        <View style={styles.routeDot} />
-                    </View>
-                    <View style={styles.routeTextCol}>
-                        <Text style={styles.routeTitle}>Customer Destination</Text>
-                        <Text style={styles.routeSubtitle}>
-                            {order?.area ?? 'Destination'}{dropKm ? ` (${dropKm} km away)` : ''}
-                        </Text>
+
+                {/* Pickup from card */}
+                <View style={styles.card}>
+                    <Text style={styles.cardLabelRow}>
+                        <Ionicons name="cart-outline" size={13} color={theme.labelGray} />  PICKUP FROM
+                    </Text>
+                    <Text style={styles.restaurantName}>{order?.restaurant_name}</Text>
+                    <Text style={styles.address}>
+                        {order?.street}{order?.landmark ? `, ${order?.landmark}` : ''}{order?.area ? `, ${order?.area}` : ''}
+                    </Text>
+                    <View style={styles.pillRow}>
+                        <View style={styles.pill}>
+                            <Ionicons name="time-outline" size={14} color="#333" />
+                            <Text style={styles.pillText}>
+                                Ready in {order?.delivery_boy_route?.to_restaurant?.estimated_time ?? '—'} min
+                            </Text>
+                        </View>
+                        {order?.restaurant_rating ? (
+                            <View style={styles.pill}>
+                                <Ionicons name="star" size={14} color="#E3B341" />
+                                <Text style={styles.pillText}>{order?.restaurant_rating} Rating</Text>
+                            </View>
+                        ) : null}
                     </View>
                 </View>
-            </View>
 
-            <TouchableOpacity onPress={handleAccept} style={styles.acceptBtn} activeOpacity={0.85}>
-                <Text style={styles.acceptText}>{status === 'dispatched' ? 'Confirm' : 'Accept Order'}</Text>
-            </TouchableOpacity>
+                {/* Delivery route card */}
+                <View style={styles.card}>
+                    <Text style={styles.cardLabel}>DELIVERY ROUTE</Text>
+                    <View style={styles.routeRow}>
+                        <View style={styles.routeDotCol}>
+                            <View style={styles.routeDot} />
+                            <View style={styles.routeLine} />
+                        </View>
+                        <View style={styles.routeTextCol}>
+                            <Text style={styles.routeTitle}>{order?.restaurant_name}</Text>
+                            <Text style={styles.routeSubtitle}>Pickup Location</Text>
+                        </View>
+                    </View>
+                    <View style={styles.routeRow}>
+                        <View style={styles.routeDotCol}>
+                            <View style={styles.routeDot} />
+                        </View>
+                        <View style={styles.routeTextCol}>
+                            <Text style={styles.routeTitle}>Customer Destination</Text>
+                            <Text style={styles.routeSubtitle}>
+                                {order?.area ?? 'Destination'}{dropKm ? ` (${dropKm} km away)` : ''}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
 
-            {status !== "dispatched" && (
+                <TouchableOpacity onPress={handleAccept} style={styles.acceptBtn} activeOpacity={0.85}>
+                    <Text style={styles.acceptText}>Accept Order</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity onPress={handleDecline} style={styles.declineBtn} activeOpacity={0.7}>
                     <Text style={styles.declineText}>Decline Request</Text>
                 </TouchableOpacity>
-            )}
+            </ScrollView>
         </View>
     )
 }

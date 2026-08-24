@@ -47,8 +47,7 @@ const maskAccountNumber = (accNo) => {
     return `•••• •••• ${last4}`;
 }
 
-const Profile = () => {
- const { user } = useSelector((state) => state.auth)
+const Profile = ({user}) => {
 
 
     // if (!user) {

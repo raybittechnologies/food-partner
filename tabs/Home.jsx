@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
     StyleSheet,
     Text,
@@ -14,7 +14,12 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Feather from 'react-native-vector-icons/Feather'
 import { colors } from '../constants/colors'
 import { useNavigation } from '@react-navigation/native'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import OnlineToggle from '../components/common/OnlineToggle'
+import { clearOrder, setDelivery, setIsOnline } from '../redux/authSlice'
+import { useLocation } from '../components/tracking/LocationProvider'
+import { useSocket } from '../context/sockets'
+import ButtonComp from '../components/common/ButtonComp'
 
 // ---- Mock data (swap these for real props / redux selectors later) ----
 const performanceStats = [
@@ -108,7 +113,10 @@ const ProgressRing = ({ completed, total, size = 100, strokeWidth = 10 }) => {
 
 const Home = () => {
     const {user}=useSelector((state)=>state.auth);
-    console.log(user);
+     const { socket } = useSocket();
+    const dispatch = useDispatch();
+      const { location } = useLocation();
+console.log(user)
     const today = new Date()
     const navigation=useNavigation();
     const formattedDate = today.toLocaleDateString('en-US', {
@@ -116,6 +124,37 @@ const Home = () => {
         day: 'numeric',
         month: 'long',
     })
+
+
+   const handleToggleOnline = (next) => {
+  console.log(next)
+  // update UI immediately — don't wait on the server round-trip
+//   dispatch(setIsOnline(next))
+// dispatch(setDelivery(""))
+
+  if (!location?.latitude || !location?.longitude) {
+    console.log('⚠️ no location yet:', location)
+    return
+  }
+
+  const payload = {
+    location: { lat: location.latitude, lng: location.longitude },
+    status: next ? 'online' : 'offline',
+  }
+  console.log(payload)
+
+  socket?.emit('deliveryBoyConnect', payload, () => {
+    console.log('✅ ack received — server confirmed the update')
+  })
+}
+
+useEffect(() => {
+    socket?.on('deliveryBoyConnected', (data) => {
+      console.log('🔔 received deliveryBoyConnect event:', data)
+      dispatch(setIsOnline(data.status === 'online'?true:false))
+    })
+},[])
+
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -140,10 +179,7 @@ const Home = () => {
                     </View>
                 </View>
 
-                <View style={styles.onlineBadge}>
-                    <View style={styles.onlineDot} />
-                    <Text style={styles.onlineText}>Online</Text>
-                </View>
+                <OnlineToggle  onToggle={handleToggleOnline} />
 
                 {/* Today's Performance */}
                 <Text style={styles.sectionTitle}>Today's Performance</Text>
@@ -185,9 +221,22 @@ const Home = () => {
                             <Text style={styles.addressText}>{currentDelivery.dropoff}</Text>
                         </View>
 
-                        <TouchableOpacity style={styles.viewOrderButton} onPress={() => navigation.navigate('Tracking')}>
+                        {/* <TouchableOpacity style={styles.viewOrderButton} onPress={() => navigation.navigate('Tracking')}>
                             <Text style={styles.viewOrderText}>View Order</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
+                        
+           <ButtonComp
+            title="Track Order"
+            onPress={() => navigation.navigate('Tracking')}
+            bg={colors.primary}
+            color="#fff"
+            size={16}
+            fw="700"
+            ff="OpenSans-Bold"
+            ta="center"
+            height={48}
+            mt={20}
+          />
                     </View>
                 </View>
 
@@ -241,7 +290,7 @@ const CARD_RADIUS = 16
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#F7F7F8',
+        backgroundColor: colors.background,
     },
     scrollContent: {
         paddingHorizontal: 20,

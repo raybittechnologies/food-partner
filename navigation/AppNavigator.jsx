@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Alert, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import DeliveryLanding from '../screens/Landing';
 import Login from '../screens/Login';
 import Otp from '../screens/Otp';
@@ -25,6 +25,11 @@ import { useSocket } from '../context/sockets';
 import Emergency from '../screens/profile/Emergency';
 import Notifications from '../screens/profile/Notifications';
 import Tracking from '../screens/Tracking';
+import WalletScreen from '../screens/profile/WalletScreen';
+import Transactions from '../screens/profile/Transactions';
+import apiService from '../services/ApiService';
+import { clearOrder, setSubmitOrder } from '../redux/authSlice';
+import SubmitOrderModal from '../components/order/SubmitOrder';
 const Stack = createNativeStackNavigator();
 
 const SPLASH_DURATION = 2000;
@@ -52,10 +57,11 @@ const AuthStackScreen = () => (
 // App stack screens for authenticated usersx
 const AppStackScreen = () => {
   const navigation = useNavigation();
+  const dispatch=useDispatch();
   const { newOrder,dispatchOrder } = useSocket();
-
+  const { submitOrder, order, token } = useSelector((state) => state.auth);
   console.log("Dispatch Order in AppStackScreen:", dispatchOrder);
-  console.log("New Order in AppStackScreen:",  newOrder);
+  console.log("New Order in AppStackScreen:",  submitOrder);
 useEffect(() => {
   if (newOrder) {
     navigation.navigate('order-request');
@@ -65,8 +71,44 @@ useEffect(() => {
 }, [newOrder, dispatchOrder]);
 
 
+ const handleArrived = async () => {
+      try {
+        const res=  await apiService(
+        `/api/deliveryBoy/arrivedOrder?order_id=${order?.order_id}`,
+        'PATCH',
+        null,
+        { Authorization: `Bearer ${token}` },
+      );
+      console.log(res)
+      // dispatch(setSubmitOrder(false));
+      
+      } catch (error) {
+        console.log(error)
+      }
+    
+  };
+
+  const handleSubmit = async () => {
+    try {
+   const res=  await apiService(
+        `/api/deliveryBoy/deliverOrder?order_id=${order?.order_id}`,
+        'PATCH',
+        null,
+        { Authorization: `Bearer ${token}` },
+      );
+      console.log(res)
+      dispatch(setSubmitOrder(false));
+      dispatch(clearOrder());
+      navigation.navigate('dashboard', { screen: 'Home' });
+    } catch (err) {
+      console.error('Failed to complete order:', err);
+      Alert.alert('Error', 'Failed to submit the order. Please try again.');
+    }
+  };
+
 
   return (
+    <>
     <Stack.Navigator screenOptions={{ headerShown: false }}>
 
       
@@ -75,10 +117,19 @@ useEffect(() => {
       <Stack.Screen name="food-id" component={FoodCard} />
 <Stack.Screen name="order-request" component={OrderRequest} />
 <Stack.Screen name="emergency-details" component={Emergency} />
+<Stack.Screen name="wallet" component={WalletScreen} />
+<Stack.Screen name="transactions" component={Transactions} />
 <Stack.Screen name="notifications" component={Notifications} />
 <Stack.Screen name="Tracking" component={Tracking} />
 
     </Stack.Navigator>
+     {/* <SubmitOrderModal
+        visible={!!submitOrder}
+        onArrive={handleArrived}
+        onSubmit={handleSubmit}
+        // onClose={() => dispatch(setSubmitOrder(false))}
+      /> */}
+    </>
   );
 };
 

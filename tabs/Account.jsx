@@ -4,11 +4,12 @@ import { useFocusEffect } from '@react-navigation/native'
 import Profile from '../components/account/Profile'
 import { useDispatch, useSelector } from 'react-redux'
 import apiService from '../services/ApiService'
-import { setUser } from '../redux/authSlice'
+import { colors } from '../constants/colors'
+
 
 const Account = () => {
     const { token } = useSelector((state) => state.auth)
-
+    const [deliveryBoy, setDeliveryBoy] = useState(null)
     const dispatch = useDispatch()
     const [loading, setLoading] = useState(false)
 
@@ -23,8 +24,8 @@ const Account = () => {
                 console.log('Error fetching profile:', res.error)
                 return
             }
-            dispatch(setUser(res.data.data))
-            // setUser(res.data.data)
+
+            setDeliveryBoy(res.data.data)
         } catch (error) {
             console.log('Error fetching profile:', error)
         } finally {
@@ -40,7 +41,7 @@ const Account = () => {
 
     return (
         <ScrollView style={styles.container}>
-            <Profile  />
+            <Profile  user={deliveryBoy}/>
         </ScrollView>
     )
 }
@@ -50,7 +51,7 @@ export default Account
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: colors.background,
         // paddingHorizontal: 16,
         // paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight  : 50,
     }

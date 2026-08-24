@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../../constants/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 
@@ -76,7 +77,7 @@ const NotificationCard = ({ item }) => {
 const Notifications = () => {
   const navigation = useNavigation();
   const [data, setData] = useState(INITIAL_DATA);
-
+const insets=useSafeAreaInsets();
   const handleClearAll = () => {
     setData({ today: [], thisWeek: [] });
   };
@@ -85,7 +86,7 @@ const Notifications = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleWrapper}>
+      <View style={[styles.titleWrapper, { paddingTop:insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <AntDesign name="arrowleft" size={22} color="#000" />
         </TouchableOpacity>

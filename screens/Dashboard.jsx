@@ -18,11 +18,11 @@ const Tab = createBottomTabNavigator()
 
 const Dashboard = () => {
     const navigation = useNavigation()
-    const { socket, } = useSocket();
-    console.log("Socket in Dashboard:", socket.id);
+    const { socket } = useSocket();
+    console.log("Socket in Dashboard:", socket?.id);
 
 useEffect(() => {
-    console.log("Socket in Dashboard useEffect:", socket.id);
+    console.log("Socket in Dashboard useEffect:", socket?.id);
 },[socket])
 
 

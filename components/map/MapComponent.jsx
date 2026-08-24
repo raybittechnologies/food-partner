@@ -44,7 +44,7 @@ const MapComponent = () => {
 
   // ✅ Using static destination for now
   // const destination = STATIC_DESTINATION;
-
+console.log(order, delivery)
 
  
   const destination = order && delivery === 'delivering'
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   recenterButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 7,
     paddingVertical: 8,
     alignItems: 'center',
   },

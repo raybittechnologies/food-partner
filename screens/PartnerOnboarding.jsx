@@ -38,28 +38,29 @@ const PartnerOnboarding = () => {
             Alert.alert("You have pending documents to upload. Please complete the required documents before proceeding.")
             return;
         }
+        setSuccessModal(true); 
 
-        try {
-            setCheckingProfile(true);
-            const res = await apiService('/api/deliveryBoy/getme', 'GET', null, {
-                Authorization: `Bearer ${token}`,
-            });
+        // try {
+        //     setCheckingProfile(true);
+        //     const res = await apiService('/api/deliveryBoy/getme', 'GET', null, {
+        //         Authorization: `Bearer ${token}`,
+        //     });
 
-            if (res.error) {
-                console.log(res);
-                Alert.alert("Something went wrong while fetching your profile. Please try again.");
-                return;
-            }
+        //     if (res.error) {
+        //         console.log(res);
+        //         Alert.alert("Something went wrong while fetching your profile. Please try again.");
+        //         return;
+        //     }
 
-            console.log("Profile:", res)
-            dispatch(setUser(res.data.data));
-            setSuccessModal(true);
-        } catch (error) {
-            console.log("Error fetching profile:", error);
-            Alert.alert("Something went wrong while fetching your profile. Please try again.");
-        } finally {
-            setCheckingProfile(false);
-        }
+        //     console.log("Profile:", res)
+        //     dispatch(setUser(res?.data?.data));
+            
+        // } catch (error) {
+        //     console.log("Error fetching profile:", error);
+        //     Alert.alert("Something went wrong while fetching your profile. Please try again.");
+        // } finally {
+        //     setCheckingProfile(false);
+        // }
     }
 
     const GetInfo = async () => {
@@ -131,7 +132,7 @@ const PartnerOnboarding = () => {
             ff="OpenSans-Bold"
             ta="center"
             height={54}
-            loading={checkingProfile}
+            // loading={checkingProfile}
             mt={20}
           />
             </ScrollView>
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
-        padding:16
+        paddingHorizontal:16
     },
     section: {
         paddingTop: 24,

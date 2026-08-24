@@ -1,5 +1,4 @@
-// SubmitOrderModal.js
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal,
   Animated,
@@ -8,13 +7,17 @@ import {
   Text,
   StyleSheet,
   Dimensions,
-  View
+  View,
+  TextInput,
+  Keyboard
 } from 'react-native';
 
 const { height } = Dimensions.get('window');
+const OTP_LENGTH = 4; // change to 6 if your OTP is 6 digits
 
-const SubmitOrderModal = ({ visible, onArrive, onSubmit ,onClose}) => {
+const SubmitOrderModal = ({ visible, hasArrived, onArrive, onSubmit, onClose }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
+  const [otp, setOtp] = useState('')
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -25,6 +28,18 @@ const SubmitOrderModal = ({ visible, onArrive, onSubmit ,onClose}) => {
     }).start();
   }, [visible]);
 
+  // clear the OTP field whenever the modal closes or the stage resets
+  useEffect(() => {
+    if (!visible) {
+      setOtp('')
+      Keyboard.dismiss()
+    }
+  }, [visible]);
+
+  const handleSubmitPress = () => {
+    onSubmit(otp) // pass the entered otp up to Tracking's handleSubmit
+  }
+
   return (
     <Modal visible={visible} transparent animationType="none">
       <TouchableOpacity
@@ -32,21 +47,50 @@ const SubmitOrderModal = ({ visible, onArrive, onSubmit ,onClose}) => {
         activeOpacity={1}
         onPress={onClose}
       >
-        <Animated.View
-          style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}
-        >
-          <Text style={styles.title}>Are you sure you want to submit the order?</Text>
+        <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+          <Animated.View
+            style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}
+          >
+            <Text style={styles.title}>
+              {hasArrived
+                ? 'Enter the OTP to complete delivery'
+                : 'Have you arrived at the restaurant?'}
+            </Text>
 
-          <View style={styles.buttonRow}>
-            <TouchableOpacity onPress={onSubmit} style={styles.submitButton}>
-              <Text style={styles.buttonText}>Deliver</Text>
-            </TouchableOpacity>
+            {hasArrived && (
+              <TextInput
+                style={styles.otpInput}
+                value={otp}
+                onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, '').slice(0, OTP_LENGTH))}
+                keyboardType="number-pad"
+                maxLength={OTP_LENGTH}
+                placeholder="Enter OTP"
+                placeholderTextColor="#999"
+                textAlign="center"
+                autoFocus
+              />
+            )}
 
-            <TouchableOpacity onPress={onArrive} style={styles.cancelButton}>
-              <Text style={styles.buttonText}>Arrived</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
+            <View style={styles.buttonRow}>
+              {!hasArrived ? (
+                <TouchableOpacity onPress={onArrive} style={styles.submitButton}>
+                  <Text style={styles.buttonText}>Arrived</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={handleSubmitPress}
+                  style={[
+                    styles.submitButton,
+                    otp.length !== OTP_LENGTH && styles.submitButtonDisabled
+                  ]}
+                  disabled={otp.length !== OTP_LENGTH}
+                >
+                  <Text style={styles.buttonText}>Deliver</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
       </TouchableOpacity>
     </Modal>
   );
@@ -72,9 +116,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  otpInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    paddingVertical: 12,
+    fontSize: 20,
+    letterSpacing: 8,
+    marginBottom: 20,
+    fontFamily: 'OpenSans-SemiBold',
+  },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
   },
   submitButton: {
     backgroundColor: 'green',
@@ -82,11 +136,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 10,
   },
-  cancelButton: {
-    backgroundColor: '#FA4A0C',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+  submitButtonDisabled: {
+    backgroundColor: '#a5d6a7',
   },
   buttonText: {
     color: 'white',

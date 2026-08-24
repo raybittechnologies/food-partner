@@ -29,7 +29,7 @@ try {
   const response = await apiService('/api/deliveryBoy/deliverySendOtp','POST', { phone_no:phoneNumber });
   if (response.data) {
     console.log("OTP sent successfully:", response.data);
-    navigation.replace("otp", { phoneNumber });
+    navigation.navigate("otp", { phoneNumber,otpres:response.data.otp });
   } else {
     console.log("Failed to send OTP:", response.error);
     alert("Failed to send OTP. Please try again later.");
@@ -90,7 +90,7 @@ try {
             fw="700"
             ff="OpenSans-Bold"
             ta="center"
-            height={54}
+            height={48}
             loading={loading}
             mt={50}
           />

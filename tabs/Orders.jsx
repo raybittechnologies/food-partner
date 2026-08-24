@@ -4,6 +4,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
 import { colors } from '../constants/colors'
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const ORDERS_DATA = [
   {
@@ -50,10 +51,10 @@ const ORDERS_DATA = [
 
 const Orders = () => {
   const navigation = useNavigation()
-
+const insets=useSafeAreaInsets()
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header,{paddingTop:insets.top}]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <AntDesign name="arrowleft" size={22} color="#000" />
         </TouchableOpacity>
@@ -112,7 +113,7 @@ function OrderCard({ order }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
     padding: 16
   },
   header: {

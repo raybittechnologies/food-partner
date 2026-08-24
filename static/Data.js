@@ -1,10 +1,17 @@
 export const data = [
+  // {
+  //   id: 1,
+  //   icon: 'card-outline', // Ionicons (better suited for ID card)
+  //   title: 'Food I’D Card',
+  //   screen: 'food-id',
+  // },
   {
-    id: 1,
-    icon: 'card-outline', // Ionicons (better suited for ID card)
-    title: 'Food I’D Card',
-    screen: 'food-id',
+    id: 6,
+    icon: 'wallet-outline', // Ionicons (represents emergency/first aid)
+    title: 'My Wallet',
+    screen: 'wallet',
   },
+
   {
     id: 2,
     icon: 'medkit-outline', // Ionicons (represents emergency/first aid)

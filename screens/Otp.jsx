@@ -5,7 +5,7 @@ import { OtpInput } from 'react-native-otp-entry'
 import { useEffect, useState } from 'react'
 import apiService from '../services/ApiService'
 import { useDispatch } from 'react-redux'
-import { setPhoneDetails, setToken } from '../redux/authSlice'
+import { setisAuthenticated, setPhoneDetails, setToken, setUser } from '../redux/authSlice'
 import Button from '../components/signup/Button'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { colors } from '../constants/colors'
@@ -19,7 +19,7 @@ const Otp = ({route}) => {
       const [resending, setResending] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
 
-    const {phoneNumber} = route.params || {};
+    const {phoneNumber,otpres} = route.params || {};
     const navigation = useNavigation()
     const [otp, setOtp] = useState("");
 // console.log("OTP:", otp);
@@ -51,7 +51,14 @@ const VerifyOtp=async()=>{
         console.log("OTP verified successfully:", response.data);
         dispatch(setPhoneDetails(phoneNumber))
         dispatch(setToken(response.data.token))
-        navigation.replace("onboarding");
+        dispatch(setUser(response.data.deliverBoy))
+        if(response.data.deliveryDocs===true){
+          dispatch(setisAuthenticated(true))
+          
+        }else{
+                  navigation.replace("onboarding");
+
+        }
     } else {
         setError(response.error || "Failed to verify OTP");
         console.log("Failed to verify OTP:", response.error);
@@ -96,6 +103,8 @@ console.log("Phone Number:", phoneNumber);
           title="Verify Your Number"
           subtitle="We've sent a 4-digit code to"
         />
+
+        <Text style={{color:'red'}}>{otpres}</Text>
         <Text style={{color: colors.text, fontSize: 16, textAlign: 'center'}}>+91 {phoneNumber} <Text style={{color: colors.primary, marginLeft: 5,fontWeight: 'bold',fontSize: 16}} onPress={()=>navigation.goBack()}> Change</Text></Text>
 
          <OtpInputs setOtp={setOtp}   error={error} />
@@ -132,7 +141,7 @@ console.log("Phone Number:", phoneNumber);
             fw="700"
             ff="OpenSans-Bold"
             ta="center"
-            height={54}
+            height={48}
             loading={loading}
             mt={50}
           />

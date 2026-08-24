@@ -10,95 +10,88 @@ import { setOrder, setSubmitOrder } from '../redux/authSlice';
 // Create a context to store the socket instance
 const SocketContext = createContext();
 
-// SocketProvider component will manage the socket connection
 export const SocketProvider = ({children}) => {
-  const dispatch =useDispatch()
-    const [isNewOrder, setIsNewOrder] = useState(false)
-    const [newOrder, setNewOrder] = useState(false);
-    const [dispatchOrder, setDispatchOrder] = useState(false);
-  
+  const dispatch = useDispatch();
+  const [isNewOrder, setIsNewOrder] = useState(false);
+  const [newOrder, setNewOrder] = useState(false);
+  const [dispatchOrder, setDispatchOrder] = useState(false);
+  const [connected, setConnected] = useState(false); // ✅ was missing
+  const [socket, setSocket] = useState(null);
 
-    const placeOrder = (order) => {
-        setNewOrder(order); // Set new order details
+  const { location } = useLocation();
+  const { token,isOnline } = useSelector(state => state.auth);
+
+  const placeOrder = (order) => setNewOrder(order);
+
+  // 1. Establish socket connection — only depends on token
+  useEffect(() => {
+    if (!token) return;
+
+    const socketInstance = io(`${BASE_URI}/?token=${token}`);
+    setSocket(socketInstance);
+
+    socketInstance.on('connect', () => {
+      console.log('Socket connected:', socketInstance.id);
+      setConnected(true);
+    });
+
+    socketInstance.on('disconnect', () => setConnected(false));
+    socketInstance.on('reconnect', () => console.log('Socket reconnected'));
+
+    socketInstance.on('newOrderNotification', (order) => {
+      console.log('New order notification:', order);
+      setNewOrder(true);
+      setIsNewOrder(true);
+      dispatch(setOrder(order?.orderDetails));
+    });
+
+    socketInstance.on('OrderDispatch', (order) => {
+      setNewOrder(false);
+      // setDispatchOrder(true);
+    });
+
+    socketInstance.on('OrderArrived', (order) => {
+      console.log('Order arrived:', order);
+      dispatch(setSubmitOrder(true));
+    });
+
+    return () => {
+      socketInstance.disconnect();
+      socketInstance.off('connect');
+      socketInstance.off('disconnect');
+      socketInstance.off('reconnect');
+      socketInstance.off('newOrderNotification');
+      socketInstance.off('OrderDispatch');
+      socketInstance.off('OrderArrived');
+    };
+  }, [token]);
+
+  // 2. Send/update location — depends on socket readiness AND location readiness
+  useEffect(() => {
+    if (!socket || !connected) return;
+    if (!location?.latitude || !location?.longitude) return; // ✅ guard against undefined GPS
+
+    const payload = {
+      location: { lat: location.latitude, lng: location.longitude },
+      status: isOnline ? 'online' : 'offline',
     };
 
-   
-  const {location}=useLocation();
-  const data ={
-    location:{
-      lat: 34.0716 ,
-      lng: 74.8046 
-    },
-    status:"online"
-  }
-  console.log("Socket data:", data);
-  const {token} = useSelector(state => state.auth); // Fetch token from redux store
-  // console.log(token);
-  const [socket, setSocket] = useState(null);
- 
-  useEffect(() => {
-    if (token) {
-      // Only establish a connection if token is available
-      const socketInstance = io(
-        `${BASE_URI}/?token=${token}`,
-      ); // Use token in URL for socket connection
-      setSocket(socketInstance);
+    socket.emit('deliveryBoyConnect', payload, () => {
+      console.log('Location update sent successfully');
+    });
+  }, [socket, connected, location?.latitude, location?.longitude]); // ✅ re-fires on every location change
 
-      // Listen for the 'connect' event
-      socketInstance.on('connect', () => {
-        console.log('Socket connected:', socketInstance.id);
-
-        setConnected(true);
-      });
-
-      socketInstance.on('reconnect', () => {
-        console.log('Socket successfully reconnected');
-      });
-  
-  socketInstance.emit('deliveryBoyConnect',data,()=>{
-
-console.log("Location update sent successfully");
-  })
-socketInstance?.on('newOrderNotification', (order) => {
-    console.log("New order received:", order);
-    setNewOrder(true); // Set the new order details
-    setIsNewOrder(true); // Indicate that there is a new order
-    dispatch(setOrder(order?.orderDetails)); // Dispatch the order to redux store
-
-  })
-  socketInstance.on('OrderDispatch', (order) => {
-    setNewOrder(false); 
-    console.log("Order dispatched:", order);
-    setDispatchOrder(true)
-  
-  })
-  socketInstance.on('OrderArrived', (order) => {
-   dispatch(setSubmitOrder(true))
-    console.log("Order delivered:", order);
-
-  })
-      return () => {
-        socketInstance.disconnect();
-        console.log('Socket disconnected');
-        socketInstance.off('connect');
-        socketInstance.off('reconnect');
-    
-      };
-    }
-  }, [token]); // Re-run the effect when token changes
-
-  // Provide the socket instance to children components
   return (
     <SocketContext.Provider
       value={{
-        socket,
-        newOrder, placeOrder,  setIsNewOrder, isNewOrder ,setNewOrder,dispatchOrder,setDispatchOrder
+        socket, connected,
+        newOrder, placeOrder, setIsNewOrder, isNewOrder, setNewOrder,
+        dispatchOrder, setDispatchOrder,
       }}>
       {children}
     </SocketContext.Provider>
   );
 };
-
 // Custom hook to use the socket context
 export const useSocket = () => {
   const context = useContext(SocketContext);

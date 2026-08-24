@@ -10,6 +10,7 @@ export const authSlice = createSlice({
     order: null,
     delivery:'',
     submitOrder: false,
+    isOnline: true,
   },
   reducers: {
     setUser(state, action) {
@@ -49,6 +50,9 @@ setDelivery(state, action) {
 },
 setSubmitOrder(state, action) {
       state.submitOrder = action.payload;
+},
+setIsOnline(state, action) {
+      state.isOnline = action.payload;
 }
   
   },
@@ -63,6 +67,7 @@ export const {
   setOrder,
   clearOrder,
   setDelivery,
-  setSubmitOrder
+  setSubmitOrder,
+  setIsOnline
 } = authSlice.actions;
 export default authSlice.reducer;
