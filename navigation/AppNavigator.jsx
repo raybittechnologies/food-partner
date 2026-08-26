@@ -1,4 +1,4 @@
-import { Alert, AppState, StyleSheet, Text, View } from 'react-native'
+import { Alert, AppState, PermissionsAndroid, Platform, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import DeliveryLanding from '../screens/Landing';
@@ -27,6 +27,14 @@ import Notifications from '../screens/profile/Notifications';
 import Tracking from '../screens/Tracking';
 import WalletScreen from '../screens/profile/WalletScreen';
 import Transactions from '../screens/profile/Transactions';
+import {
+  AuthorizationStatus,
+  getMessaging,
+} from '@react-native-firebase/messaging';
+import {getApp} from '@react-native-firebase/app';
+import { setDeviceToken } from '../redux/authSlice';
+import { flushPendingNavigation, navigationRef } from './RootNavigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Stack = createNativeStackNavigator();
 
@@ -63,10 +71,8 @@ const AppStackScreen = () => {
 useEffect(() => {
   if (newOrder) {
     navigation.navigate('order-request');
-  } else if (dispatchOrder) {
-    navigation.navigate('order-request', { status: 'dispatched' });
-  }
-}, [newOrder, dispatchOrder]);
+  } 
+}, [newOrder]);
 
 
 
@@ -109,8 +115,90 @@ const AppNavigator = () => {
     return () => clearTimeout(timer);
   }, []);
 
+   const checkPendingOrder = async () => {
+    try {
+      const raw = await AsyncStorage.getItem('pendingOrderRequest');
+      if (raw) {
+        const data = JSON.parse(raw);
+        await AsyncStorage.removeItem('pendingOrderRequest');
+        console.log('📨 Found pending order on cold start:', data);
+        navigationRef.navigate('order-request', { data });
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to read pending order:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && !showSplash) {
+      checkPendingOrder();
+      flushPendingNavigation(); // keep this too, harmless belt-and-suspenders
+    }
+  }, [isAuthenticated, showSplash]);
+
+
+  const dispatch = useDispatch();
+  async function requestUserPermission() {
+    if (Platform.OS === 'android' && Platform.Version >= 33) {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('Notification permission granted on Android 13+');
+      } else {
+        console.log('Notification permission denied');
+      }
+    }
+    try {
+      const app = getApp();
+      const messagingInstance = getMessaging(app);
+
+      const authStatus = await messagingInstance.requestPermission();
+      const enabled =
+        authStatus === AuthorizationStatus.AUTHORIZED ||
+        authStatus === AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        console.log('Authorization status:', authStatus);
+      }
+    } catch (error) {
+      console.error('Error requesting permission:', error);
+    }
+  }
+
+  // Get device token
+  const getToken = async () => {
+    try {
+      const app = getApp();
+      const messagingInstance = getMessaging(app);
+      const deviceToken = await messagingInstance.getToken(); // ✅ Correct modular call
+      console.log('Device Token:', deviceToken);
+      dispatch(setDeviceToken(deviceToken));
+    } catch (error) {
+      console.error('Error getting device token:', error);
+    }
+  };
+  // useEffect(() => {
+  //   requestUserPermission();
+  //   getToken();
+  // }, []);
+useEffect(() => {
+  const sub = AppState .addEventListener('change', async (state) => {
+    if (state === 'active') {
+       await requestUserPermission()
+    
+    }
+  });
+getToken();
+  return () => sub.remove();
+}, []);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer
+     ref={navigationRef}
+  onReady={() => flushPendingNavigation()}
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {showSplash ? (
           <Stack.Screen name="splash" component={DeliveryLanding} />

@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import apiService from '../services/ApiService'
 import SubmitOrderModal from '../components/order/SubmitOrder'
 import { clearOrder, setSubmitOrder } from '../redux/authSlice'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 // import { setSubmitOrder, clearOrder } from '../store/authSlice'
 
 const theme = {
@@ -31,6 +32,19 @@ const Tracking = () => {
       setShowSubmitModal(true)
     }
   }, [submitOrder])
+
+
+useEffect(() => {
+  const clearPendingOrder = async () => {
+    try {
+      await AsyncStorage.removeItem('pendingOrderRequest');
+      console.log('🗑️ Cleared pending order request from storage');
+    } catch (e) {
+      console.log('⚠️ Failed to clear pending order:', e);
+    }
+  };
+  clearPendingOrder();
+}, []); 
 
   const handleArrived = async () => {
     try {

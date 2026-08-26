@@ -1,53 +1,64 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { colors } from '../../constants/colors'
+import Feather from 'react-native-vector-icons/Feather'
 
-const DEFAULT_WITHDRAWALS = [
-  { amount: 2500, date: '14 Dec, 2024', time: '04:30 PM', status: 'Completed' },
-  { amount: 1200, date: '11 Dec, 2024', time: '11:15 AM', status: 'Completed' },
-  { amount: 550, date: '08 Dec, 2024', time: '09:00 AM', status: 'Pending' },
-]
-
-const RecentWithdrawals = ({ withdrawals = DEFAULT_WITHDRAWALS }) => {
+const RecentWithdrawals = ({ withdrawals }) => {
   const formatCurrency = (amount) =>
     amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+  const isEmpty = !withdrawals || withdrawals.length === 0
+
+  console.log('hii',withdrawals)
 
   return (
     <View style={styles.card}>
       <Text style={styles.heading}>Recent Withdrawals</Text>
 
-      {withdrawals.map((item, index) => (
-        <View
-          key={`${item.date}-${index}`}
-          style={[
-            styles.row,
-            index === withdrawals.length - 1 && { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 },
-          ]}
-        >
-          <View>
-            <Text style={styles.amount}>₹{formatCurrency(item.amount)}</Text>
-            <Text style={styles.dateTime}>
-              {item.date} • {item.time}
-            </Text>
+      {isEmpty ? (
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconCircle}>
+            <Feather name="clock" size={22} color={colors.primary} />
           </View>
-
+          <Text style={styles.emptyTitle}>No withdrawals yet</Text>
+          <Text style={styles.emptySubtitle}>
+            Your withdrawal history will show up here once you make one.
+          </Text>
+        </View>
+      ) : (
+        withdrawals.map((item, index) => (
           <View
+            key={`${item.date}-${index}`}
             style={[
-              styles.pill,
-              item.status === 'Completed' ? styles.pillCompleted : styles.pillPending,
+              styles.row,
+              index === withdrawals.length - 1 && { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 },
             ]}
           >
-            <Text
+            <View>
+              <Text style={styles.amount}>₹{item.amount}</Text>
+              <Text style={styles.dateTime}>
+                {item.date} • {item.time}
+              </Text>
+            </View>
+
+            <View
               style={[
-                styles.pillText,
-                item.status === 'Completed' ? styles.pillTextCompleted : styles.pillTextPending,
+                styles.pill,
+                item.status === 'Completed' ? styles.pillCompleted : styles.pillPending,
               ]}
             >
-              {item.status}
-            </Text>
+              <Text
+                style={[
+                  styles.pillText,
+                  item.status === 'Completed' ? styles.pillTextCompleted : styles.pillTextPending,
+                ]}
+              >
+                {item.status}
+              </Text>
+            </View>
           </View>
-        </View>
-      ))}
+        ))
+      )}
     </View>
   )
 }
@@ -111,5 +122,32 @@ const styles = StyleSheet.create({
   },
   pillTextPending: {
     color: colors.primary,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  emptyIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.primary + '14',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 14,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 4,
+  },
+  emptySubtitle: {
+    fontSize: 12,
+    fontFamily: 'OpenSans-Regular',
+    color: '#8A8A8A',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 })

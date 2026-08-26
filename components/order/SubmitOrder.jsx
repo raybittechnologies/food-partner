@@ -37,6 +37,7 @@ const SubmitOrderModal = ({ visible, hasArrived, onArrive, onSubmit, onClose }) 
   }, [visible]);
 
   const handleSubmitPress = () => {
+    
     onSubmit(otp) // pass the entered otp up to Tracking's handleSubmit
   }
 

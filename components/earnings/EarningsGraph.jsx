@@ -7,31 +7,24 @@ import { BarChart } from 'react-native-chart-kit'
 const { width } = Dimensions.get('window')
 
 const EarningsGraph = ({
-  data = [
-    { label: 'M', value: 550 },
-    { label: 'T', value: 820 },
-    { label: 'W', value: 400 },
-    { label: 'T', value: 950 },
-    { label: 'F', value: 1200 },
-    { label: 'S', value: 330 },
-    { label: 'S', value: 0 },
-  ],
+graphData,
 }) => {
-  const chartWidth = width - 80
+  const chartWidth = width
+  const hasData = Array.isArray(graphData) && graphData.length > 0
 
   const chartData = {
-    labels: data.map((d) => d.label),
+    labels: hasData ? graphData.map((d) => d.day) : [],
     datasets: [
       {
-        data: data.map((d) => d.value),
+        data: hasData ? graphData.map((d) => d.value) : [0],
       },
     ],
   }
 
   const chartConfig = {
-    backgroundColor: '#FFFFFF',
-    backgroundGradientFrom: '#FFFFFF',
-    backgroundGradientTo: '#FFFFFF',
+    backgroundColor: colors.background,
+    backgroundGradientFrom: colors.background,
+    backgroundGradientTo: colors.background,
     decimalPlaces: 0,
     color: () => colors.primary,
     labelColor: () => '#8A8A8A',
@@ -43,7 +36,7 @@ const EarningsGraph = ({
     },
     propsForLabels: {
       fontFamily: 'OpenSans-Regular',
-      fontSize: 12,
+      fontSize: 10,
     },
   }
 
@@ -51,20 +44,26 @@ const EarningsGraph = ({
     <View style={styles.card}>
       <Text style={styles.heading}>Earnings Overview</Text>
       <View style={styles.chartWrap}>
-        <BarChart
-          data={chartData}
-          width={chartWidth}
-          height={160}
-          yAxisLabel="₹"
-          yAxisSuffix=""
-          chartConfig={chartConfig}
-          fromZero
-          showValuesOnTopOfBars
-          withInnerLines={false}
-          withHorizontalLabels={false}
-          withVerticalLabels
-          style={styles.chart}
-        />
+        {hasData ? (
+          <BarChart
+            data={chartData}
+            width={chartWidth}
+            height={160}
+            yAxisLabel="₹"
+            yAxisSuffix=""
+            chartConfig={chartConfig}
+            fromZero
+            showValuesOnTopOfBars
+            withInnerLines={false}
+            withHorizontalLabels={false}
+            withVerticalLabels
+            style={styles.chart}
+          />
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No earnings data for this week</Text>
+          </View>
+        )}
       </View>
     </View>
   )
@@ -88,11 +87,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   chartWrap: {
-    marginLeft: -20,
+    marginLeft: -60,
     alignItems: 'center',
-
   },
   chart: {
     borderRadius: 16,
+  },
+  emptyState: {
+    height: 160,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 13,
+    fontFamily: 'OpenSans-Regular',
+    color: '#8A8A8A',
   },
 })

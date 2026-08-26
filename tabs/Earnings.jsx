@@ -1,5 +1,5 @@
 import { Alert, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ScrollView } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import AntDesign from 'react-native-vector-icons/AntDesign'
@@ -15,15 +15,48 @@ import { useSelector } from 'react-redux'
 import { BASE_URI } from '../config/url'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+function getStartOfWeek(date) {
+  const day = date.getDay() || 7 // Sunday=0 => 7
+  const start = new Date(date)
+  start.setDate(date.getDate() - day + 1)
+  start.setHours(0, 0, 0, 0)
+  return start
+}
+
+function getEndOfWeek(start) {
+  const end = new Date(start)
+  end.setDate(start.getDate() + 6)
+  end.setHours(23, 59, 59, 999)
+  return end
+}
+
+function toApiDateString(date) {
+  // YYYY-MM-DD
+  return date.toISOString().split('T')[0]
+}
+
 const Earnings = () => {
   const insets = useSafeAreaInsets()
   const {token} = useSelector((state) => state.auth)
   const navigation = useNavigation()
   const [loading,setLoading] = useState(false)
+  const [data, setData] = useState()
   const [withdrawVisible, setWithdrawVisible] = useState(false)
+  const [startDate, setStartDate] = useState(getStartOfWeek(new Date()))
 
-  // TODO: replace with your real balance from state/API
-  const availableBalance = 12500
+  const endDate = getEndOfWeek(startDate)
+
+  const handlePrevWeek = () => {
+    const newDate = new Date(startDate)
+    newDate.setDate(startDate.getDate() - 7)
+    setStartDate(getStartOfWeek(newDate))
+  }
+
+  const handleNextWeek = () => {
+    const newDate = new Date(startDate)
+    newDate.setDate(startDate.getDate() + 7)
+    setStartDate(getStartOfWeek(newDate))
+  }
 
   const handleWithdraw = async(amount) => {
    try {
@@ -44,6 +77,31 @@ const Earnings = () => {
    }
   }
 
+  const handleEarnings = async() => {
+    try {
+      setLoading(true)
+      const res = await axios.get(`${BASE_URI}/api/deliveryBoy/earningStats`,{
+        params: {
+          startDate: toApiDateString(startDate),
+          endDate: toApiDateString(endDate),
+        },
+        headers: {
+          'Authorization':  `Bearer ${token} `
+        }
+      })
+      console.log(res.data.data)
+      setData(res.data.data)
+    } catch (error) {
+      console.log(error)
+    }finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    handleEarnings()
+  },[startDate]) // ✅ refetch whenever the week changes
+
   return (
     <View style={styles.container}>
       <View style={[styles.header,{paddingTop:insets.top}]}>
@@ -55,9 +113,15 @@ const Earnings = () => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-        <EarningsCard />
-        <EarningsGraph />
-        <RecentWithdrawals />
+        <EarningsCard
+          totalEarnings={data?.total_earnings}
+          ordersCompleted={data?.orders_completed}
+          startDate={startDate}
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+        />
+        <EarningsGraph graphData={data?.earnings_overview}/>
+        <RecentWithdrawals withdrawals={data?.recent_withdrawals}/>
 
         <ButtonComp
           title="Withdraw Earnings"
@@ -76,7 +140,7 @@ const Earnings = () => {
       <WithdrawModal
         visible={withdrawVisible}
         onClose={() => setWithdrawVisible(false)}
-        availableBalance={availableBalance}
+        availableBalance={data?.total_earnings}
         onWithdraw={handleWithdraw}
         loading={loading}
       />

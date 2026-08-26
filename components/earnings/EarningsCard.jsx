@@ -1,17 +1,9 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { colors } from '../../constants/colors'
 
-const EarningsCard = ({ totalEarnings = 4250, onDutyMinutes = 30, ordersCompleted = 28 }) => {
-  const [startDate, setStartDate] = useState(getStartOfWeek(new Date()))
-
-  function getStartOfWeek(date) {
-    const day = date.getDay() || 7 // Sunday=0 => 7
-    const start = new Date(date)
-    start.setDate(date.getDate() - day + 1)
-    return start
-  }
+const EarningsCard = ({ totalEarnings, onDutyMinutes = 30, ordersCompleted, startDate, onPrevWeek, onNextWeek }) => {
 
   function formatDateRange(start) {
     const end = new Date(start)
@@ -26,25 +18,10 @@ const EarningsCard = ({ totalEarnings = 4250, onDutyMinutes = 30, ordersComplete
     return `${format(start)} - ${format(end)}`
   }
 
-  const handlePrev = () => {
-    const newDate = new Date(startDate)
-    newDate.setDate(startDate.getDate() - 7)
-    setStartDate(getStartOfWeek(newDate))
-  }
-
-  const handleNext = () => {
-    const newDate = new Date(startDate)
-    newDate.setDate(startDate.getDate() + 7)
-    setStartDate(getStartOfWeek(newDate))
-  }
-
-  const formatCurrency = (amount) =>
-    amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
   return (
     <View>
       <View style={styles.dateRow}>
-        <TouchableOpacity onPress={handlePrev} style={styles.dateArrowBtn}>
+        <TouchableOpacity onPress={onPrevWeek} style={styles.dateArrowBtn}>
           <Ionicons name="chevron-back" size={18} color="#333" />
         </TouchableOpacity>
 
@@ -53,14 +30,14 @@ const EarningsCard = ({ totalEarnings = 4250, onDutyMinutes = 30, ordersComplete
           <Text style={styles.date}>{formatDateRange(startDate)}</Text>
         </View>
 
-        <TouchableOpacity onPress={handleNext} style={styles.dateArrowBtn}>
+        <TouchableOpacity onPress={onNextWeek} style={styles.dateArrowBtn}>
           <Ionicons name="chevron-forward" size={18} color="#333" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.subHeading}>Total Earnings</Text>
-        <Text style={styles.amount}>₹{formatCurrency(totalEarnings)}</Text>
+        <Text style={styles.amount}>₹{totalEarnings}</Text>
 
         <View style={styles.divider} />
 
@@ -82,6 +59,8 @@ const EarningsCard = ({ totalEarnings = 4250, onDutyMinutes = 30, ordersComplete
 }
 
 export default EarningsCard
+
+// styles unchanged
 
 const styles = StyleSheet.create({
   dateRow: {

@@ -1,11 +1,12 @@
-import { Alert, StyleSheet, Text, TouchableOpacity, View, Image, ScrollView } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View, Image, ScrollView, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { useSocket } from '../context/sockets';
 import { useDispatch, useSelector } from 'react-redux';
-import { clearOrder, setDelivery } from '../redux/authSlice';
+import { clearOrder, setDelivery, setOrder } from '../redux/authSlice';
 import apiService from '../services/ApiService';
+import { colors } from '../constants/colors';
 
 const theme = {
     green: '#5B8C6E',
@@ -17,8 +18,10 @@ const theme = {
 
 const COUNTDOWN_SECONDS = 60
 
-const OrderRequest = () => {
+const OrderRequest = ({route}) => {
+    const {data} = route.params || {}
     const [isAccepting, setIsAccepting] = useState(false);
+
     const navigation = useNavigation()
     const dispatch = useDispatch();
     const { setDispatchOrder } = useSocket()
@@ -26,6 +29,17 @@ const OrderRequest = () => {
     const { setIsNewOrder, setNewOrder } = useSocket();
 
     const [timeLeft, setTimeLeft] = useState(COUNTDOWN_SECONDS);
+
+
+    
+        useEffect(() => {
+        if (data && !order) {
+            dispatch(setOrder(data));
+        }
+    }, [data]);
+
+    
+
 
     const handleOrder = async () => {
         try {
@@ -37,6 +51,7 @@ const OrderRequest = () => {
             );
 
             console.log("Order accepted successfully:", res);
+            setIsAccepting(false);
             if (res.data?.status === 'accepted') {
                 dispatch(setDelivery(""))
                 navigation.replace("Tracking");
@@ -104,20 +119,20 @@ const OrderRequest = () => {
                 {/* Estimated earnings card */}
                 <View style={styles.card}>
                     <Text style={styles.cardLabel}>💰  ESTIMATED EARNINGS</Text>
-                    <Text style={styles.earnings}>₹{order?.del_amount ?? '0.00'}</Text>
+                    <Text style={styles.earnings}>₹{order?.del_amount?? '0.00'}</Text>
                     <View style={styles.divider} />
                     <View style={styles.distanceRow}>
                         <View style={styles.distanceItem}>
                             <Ionicons name="location-outline" size={16} color={theme.green} />
                             <Text style={styles.distanceText}>
-                                Pickup: <Text style={styles.distanceValue}>{pickupKm} km</Text>
+                                Pickup: <Text style={styles.distanceValue}>{pickupKm.toFixed(2)} km</Text>
                             </Text>
                         </View>
                         <View style={styles.vDivider} />
                         <View style={styles.distanceItem}>
                             <Ionicons name="flag-outline" size={16} color={theme.green} />
                             <Text style={styles.distanceText}>
-                                Total: <Text style={styles.distanceValue}>{dropKm} km</Text>
+                                Total: <Text style={styles.distanceValue}>{dropKm.toFixed(2)} km</Text>
                             </Text>
                         </View>
                     </View>
@@ -175,7 +190,8 @@ const OrderRequest = () => {
                 </View>
 
                 <TouchableOpacity onPress={handleAccept} style={styles.acceptBtn} activeOpacity={0.85}>
-                    <Text style={styles.acceptText}>Accept Order</Text>
+                    {isAccepting ? <ActivityIndicator size={20} color={colors.white} /> :<Text style={styles.acceptText}>Accept Order</Text>}
+                    
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={handleDecline} style={styles.declineBtn} activeOpacity={0.7}>

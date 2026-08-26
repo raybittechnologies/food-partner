@@ -11,6 +11,7 @@ export const authSlice = createSlice({
     delivery:'',
     submitOrder: false,
     isOnline: true,
+  
   },
   reducers: {
     setUser(state, action) {

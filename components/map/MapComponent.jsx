@@ -31,6 +31,8 @@ const MapComponent = () => {
   const [displayCoordinates, setDisplayCoordinates] = useState([]);
   const mapRef = useRef(null);
 
+
+
   // Animated coordinate that drives smooth marker movement between GPS updates
   const animatedCoordinate = useRef(
     new AnimatedRegion({
@@ -58,6 +60,8 @@ console.log(order, delivery)
         longitude: parseFloat(order?.restaurant_longitude),
       }
     : null;
+
+
 
 
   const [region, setRegion] = useState(null);

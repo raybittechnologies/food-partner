@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { OtpInput } from 'react-native-otp-entry'
 import { useEffect, useState } from 'react'
 import apiService from '../services/ApiService'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { setisAuthenticated, setPhoneDetails, setToken, setUser } from '../redux/authSlice'
 import Button from '../components/signup/Button'
 import AntDesign from 'react-native-vector-icons/AntDesign'
@@ -13,6 +13,7 @@ import ButtonComp from '../components/common/ButtonComp'
 import Heading from '../components/signup/Heading'
 const RESEND_SECONDS = 60;
 const Otp = ({route}) => {
+  const {deviceToken} = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ const Otp = ({route}) => {
     const {phoneNumber,otpres} = route.params || {};
     const navigation = useNavigation()
     const [otp, setOtp] = useState("");
-// console.log("OTP:", otp);
+console.log("OTP:", deviceToken);
 
 
   useEffect(() => {
@@ -45,7 +46,7 @@ const VerifyOtp=async()=>{
     }
    try {
     setLoading(true);
-    const response = await apiService(`/api/deliveryBoy/deliveryLogin/${phoneNumber}`, 'POST', { givenOTP: otp });
+    const response = await apiService(`/api/deliveryBoy/deliveryLogin/${phoneNumber}`, 'POST', { givenOTP: otp,fcm_token: deviceToken });
     console.log("Response:", response);
     if (response.data) {
         console.log("OTP verified successfully:", response.data);

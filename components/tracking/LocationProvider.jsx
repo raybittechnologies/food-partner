@@ -63,27 +63,29 @@ export const LocationProvider = ({ children }) => {
   };
 
   const requestLocationPermission = async () => {
-    try {
-      const permission =
-        Platform.OS === 'android'
-          ? PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
-          : PERMISSIONS.IOS.LOCATION_WHEN_IN_USE;
+  try {
+    const permission =
+      Platform.OS === 'android'
+        ? PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
+        : PERMISSIONS.IOS.LOCATION_WHEN_IN_USE;
 
-      const result = await request(permission);
-      if (result === RESULTS.GRANTED) {
-        fetchCurrentLocation();
-        startWatchingLocation();
-      } else {
-        Alert.alert(
-          'Permission Denied',
-          'Location permission is required to use this feature.'
-        );
-      }
-    } catch (err) {
-      console.error('Permission error:', err);
-      Alert.alert('Error', 'Failed to request location permission.');
+    const result = await request(permission);
+    console.log('🔍 Location permission result:', result); // ✅ moved after declaration
+
+    if (result === RESULTS.GRANTED) {
+      fetchCurrentLocation();
+      startWatchingLocation();
+    } else {
+      Alert.alert(
+        'Permission Denied',
+        'Location permission is required to use this feature.'
+      );
     }
-  };
+  } catch (err) {
+    console.error('Permission error:', err);
+    Alert.alert('Error', 'Failed to request location permission.');
+  }
+};
 
   useEffect(() => {
     requestLocationPermission();
