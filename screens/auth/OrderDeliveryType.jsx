@@ -5,8 +5,8 @@ import RadioButton from 'react-native-radio-button'
 import { useState } from 'react'
 import { Screen } from 'react-native-screens'
 import { useDispatch } from 'react-redux'
-import { setisAuthenticated } from '../redux/authSlice'
-import Header from '../components/common/Header'
+import { setisAuthenticated } from '../../redux/authSlice'
+import Header from '../../components/common/Header'
 
 const OrderDeliveryType = () => {
     const [orderTypePref, setOrderTypePref] = useState(null)

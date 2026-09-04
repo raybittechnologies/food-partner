@@ -1,18 +1,18 @@
 import { Alert, AppState, PermissionsAndroid, Platform, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import DeliveryLanding from '../screens/Landing';
-import Login from '../screens/Login';
-import Otp from '../screens/Otp';
-import PartnerOnboarding from '../screens/PartnerOnboarding';
-import PersonalInfo from '../screens/PersonalInfo';
-import PersonalDocs from '../screens/PersonalDocs';
-import VehicleDetails from '../screens/VehicleDetails';
+import DeliveryLanding from '../screens/auth/Landing';
+import Login from '../screens/auth/Login';
+import Otp from '../screens/auth/Otp';
+import PartnerOnboarding from '../screens/auth/PartnerOnboarding';
+import PersonalInfo from '../screens/auth/PersonalInfo';
+import PersonalDocs from '../screens/auth/PersonalDocs';
+import VehicleDetails from '../screens/auth/VehicleDetails';
 import BankAccountDetails from '../screens/BankAccountDetails';
-import WorkDetails from '../screens/WorkDetails';
-import UploadAdhar from '../screens/UploadAdhar';
-import UploadPAN from '../screens/UploadPAN';
-import UploadDrivingLicense from '../screens/UploadDrivingLicense';
+import WorkDetails from '../screens/auth/WorkDetails';
+import UploadAdhar from '../screens/auth/UploadAdhar';
+import UploadPAN from '../screens/auth/UploadPAN';
+import UploadDrivingLicense from '../screens/auth/UploadDrivingLicense';
 import RegistrationComplete from '../screens/RegistrationComplete';
 import Dashboard from '../screens/Dashboard';
 import OrderRequest from '../screens/OrderRequest';
@@ -22,7 +22,6 @@ import { useOrder } from '../context/OrderContext';
 import BankDetails from '../screens/profile/BankDetails';
 import FoodCard from '../screens/profile/FoodCard';
 import { useSocket } from '../context/sockets';
-import Emergency from '../screens/profile/Emergency';
 import Notifications from '../screens/profile/Notifications';
 import Tracking from '../screens/Tracking';
 import WalletScreen from '../screens/profile/WalletScreen';
@@ -30,11 +29,18 @@ import Transactions from '../screens/profile/Transactions';
 import {
   AuthorizationStatus,
   getMessaging,
+  requestPermission,
+  registerDeviceForRemoteMessages,
+  getToken as getFCMTokenModular,
 } from '@react-native-firebase/messaging';
 import {getApp} from '@react-native-firebase/app';
 import { setDeviceToken } from '../redux/authSlice';
 import { flushPendingNavigation, navigationRef } from './RootNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import VehicleInfo from '../screens/profile/EditProfile';
+import EditProfile from '../screens/profile/EditProfile';
+import Emergency from '../screens/profile/Emergency';
+import EmergencyContacts from '../screens/auth/EmergencyContacts';
 
 const Stack = createNativeStackNavigator();
 
@@ -50,6 +56,7 @@ const AuthStackScreen = () => (
     <Stack.Screen name="onboarding" component={PartnerOnboarding} />
     <Stack.Screen name="personal-information" component={PersonalInfo} />
     <Stack.Screen name="delivery-documents" component={PersonalDocs} />
+    <Stack.Screen name="emergency-contacts" component={EmergencyContacts} />
     <Stack.Screen name="vehicle-details" component={VehicleDetails} />
     <Stack.Screen name="bank-details" component={BankAccountDetails} />
     <Stack.Screen name="work-type" component={WorkDetails} />
@@ -93,6 +100,7 @@ useEffect(() => {
 <Stack.Screen name="transactions" component={Transactions} />
 <Stack.Screen name="notifications" component={Notifications} />
 <Stack.Screen name="Tracking" component={Tracking} />
+<Stack.Screen name="edit-profile" component={EditProfile} />
 
     </Stack.Navigator>
      {/* <SubmitOrderModal
@@ -138,61 +146,49 @@ const AppNavigator = () => {
 
 
   const dispatch = useDispatch();
+  const messagingInstance = getMessaging();
   async function requestUserPermission() {
     if (Platform.OS === 'android' && Platform.Version >= 33) {
-      const granted = await PermissionsAndroid.request(
+      await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
       );
-
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Notification permission granted on Android 13+');
-      } else {
-        console.log('Notification permission denied');
-      }
     }
-    try {
-      const app = getApp();
-      const messagingInstance = getMessaging(app);
 
-      const authStatus = await messagingInstance.requestPermission();
+    try {
+      const authStatus = await requestPermission(messagingInstance);
       const enabled =
         authStatus === AuthorizationStatus.AUTHORIZED ||
         authStatus === AuthorizationStatus.PROVISIONAL;
 
-      if (enabled) {
-        console.log('Authorization status:', authStatus);
+      if (!enabled) {
+        console.log('Permission not granted');
+        return;
       }
+
+      if (Platform.OS === 'ios') {
+        await registerDeviceForRemoteMessages(messagingInstance);
+      }
+
+      await getFCMToken();
     } catch (error) {
-      console.error('Error requesting permission:', error);
+      console.log('Permission error:', error);
     }
   }
 
-  // Get device token
-  const getToken = async () => {
+  const getFCMToken = async () => {
     try {
-      const app = getApp();
-      const messagingInstance = getMessaging(app);
-      const deviceToken = await messagingInstance.getToken(); // ✅ Correct modular call
-      console.log('Device Token:', deviceToken);
-      dispatch(setDeviceToken(deviceToken));
+      const token = await getFCMTokenModular(messagingInstance);
+      console.log('Device FCM Token:', token);
+      dispatch(setDeviceToken(token));
     } catch (error) {
-      console.error('Error getting device token:', error);
+      console.log('error during generating token', error);
     }
   };
-  // useEffect(() => {
-  //   requestUserPermission();
-  //   getToken();
-  // }, []);
-useEffect(() => {
-  const sub = AppState .addEventListener('change', async (state) => {
-    if (state === 'active') {
-       await requestUserPermission()
-    
-    }
-  });
-getToken();
-  return () => sub.remove();
-}, []);
+
+  useEffect(() => {
+    requestUserPermission();
+
+  }, []);
 
   return (
     <NavigationContainer

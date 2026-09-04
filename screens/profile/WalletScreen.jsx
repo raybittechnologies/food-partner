@@ -235,7 +235,7 @@ const formatTxnDate = (dateStr) => {
             colors={[colors.greenLight,colors.white]}
             >
             {/* Header */}
-            <View style={[styles.header,{paddingTop:insets.top}]}>
+            <View style={[styles.header,{paddingTop: Platform.OS === 'ios' ? insets.top : 20}]} >
                 <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>

@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import RadioButton from 'react-native-radio-button'
 import { useState } from 'react'
 import Fa from 'react-native-vector-icons/FontAwesome'
-import Header from '../components/common/Header'
+import Header from '../../components/common/Header'
 const WorkArea = () => {
     const [areaPref, setAreaPref] = useState(null)
     const navigation = useNavigation()

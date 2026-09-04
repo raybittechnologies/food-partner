@@ -3,7 +3,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import { useNavigation } from '@react-navigation/native'
 import RadioButton from 'react-native-radio-button'
 import { useState } from 'react'
-import Header from '../components/common/Header'
+import Header from '../../components/common/Header'
 
 const VehicleSelection = () => {
     const [chooseVehicle, setChooseVehicle] = useState(false)
@@ -12,8 +12,8 @@ const VehicleSelection = () => {
         <View style={styles.container}>
             <Header title={"Select Your Vehicle"} showicon={true}/>
             <View style={{ marginTop: "5%" }}>
-                <VehicleCard imgSrc={require("../assets/images/scooty.png")} vehicle={chooseVehicle} setVehicle={setChooseVehicle} heading={"Bike"} text={"Deliver By Bike"} />
-                <VehicleCard imgSrc={require("../assets/images/cycle.png")} vehicle={chooseVehicle} setVehicle={setChooseVehicle} heading={"EV"} text={"Cycle Not Allowed"} />
+                <VehicleCard imgSrc={require("../../assets/images/scooty.png")} vehicle={chooseVehicle} setVehicle={setChooseVehicle} heading={"Bike"} text={"Deliver By Bike"} />
+                <VehicleCard imgSrc={require("../../assets/images/cycle.png")} vehicle={chooseVehicle} setVehicle={setChooseVehicle} heading={"EV"} text={"Cycle Not Allowed"} />
             </View>
             <TouchableOpacity onPress={() => navigation.navigate("work-area")} style={{ marginTop: "15%", width: "90%", height: 64, marginHorizontal: "auto", backgroundColor: "#FA4A0C", padding: 10, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ color: "#fff", fontSize: 24, fontFamily: "OpenSans-Regular" }}>Continue</Text>

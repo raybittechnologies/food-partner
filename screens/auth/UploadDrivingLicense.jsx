@@ -3,66 +3,68 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import { useNavigation } from '@react-navigation/native'
 import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-import Header from '../components/common/Header'
-import useImagePicker from '../components/hooks/useImagePicker'
-import { useState } from 'react'
+import Header from '../../components/common/Header'
 import { useSelector } from 'react-redux'
-import apiService from '../services/ApiService'
-import { colors } from '../constants/colors'
-import ButtonComp from '../components/common/ButtonComp'
+import { useState } from 'react'
+import useImagePicker from '../../components/hooks/useImagePicker'
+import apiService from '../../services/ApiService'
+import { colors } from '../../constants/colors'
+import ButtonComp from '../../components/common/ButtonComp'
 
-const UploadAdhar = () => {
-const [loading, setLoading] = useState(false);
-    const { token } = useSelector((state) => state.auth);
+
+const UploadDrivingLicence = () => {
+    const [loading, setLoading] = useState(false);
+        const { token } = useSelector((state) => state.auth);
      const pickImage = useImagePicker();
-  const [adharFront, setAdharFront] = useState(null);
-  const [adharBack, setAdharBack] = useState(null);
+  const [DlFront, setDlFront] = useState(null);
+  const [DlBack, setDlBack] = useState(null);
 const navigation = useNavigation()
 
 const handleSubmit = async() => {
-     console.log("Upload Adhar Screen Rendered",adharFront, adharBack);
-    if (!adharFront || !adharBack) {
-        alert("Please upload both front and back images of your Aadhar card.");
+
+    if (!DlFront || !DlBack) {
+        alert("Please upload both front and back images of your Driving Licence card.");
         return;
     }
-     const formData = new FormData();
-    formData.append('adhar_front', {
-        uri: adharFront,
-        name: 'adharFront.jpg',
-        type: 'image/jpeg',
-    });
-    formData.append('adhar_back', {
-        uri: adharBack,
-        name: 'adharBack.jpg',
-        type: 'image/jpeg',
-    });
 try {
-   
-setLoading(true);
-    const response = await apiService('/api/deliveryBoy/adharUpdate', 'PATCH', formData, {
+    const formData = new FormData();
+    formData.append('dl_front', {
+        uri: DlFront,
+        name: 'PanFront.jpg',
+        type: 'image/jpeg',
+    });
+    formData.append('dl_back', {
+        uri: DlBack,
+        name: 'PanBack.jpg',
+        type: 'image/jpeg',
+    });
+    console.log("Form Data:", formData);
+    setLoading(true);
+    const response = await apiService('/api/deliveryBoy/dlUpdate', 'PATCH', formData, {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
     });
+    console.log("Response:", response);
    if(response?.data?.status === "success") {
     setLoading(false);
-//     console.log("Aadhar card submitted successfully:", response.data);
-    alert("Aadhar card submitted successfully!");
+    console.log("DL  submitted successfully:", response);
+    alert("DL submitted successfully!");
     navigation.goBack();
-}} catch (error) {
-    console.error("Error submitting Aadhar card:", error);
-    alert("Failed to submit Aadhar card. Please try again later.");
+   }
+} catch (error) {
+    console.error("Error submitting DL:", error);
+    alert("Failed to submit Dl card. Please try again later.");
     
 }finally{
-    setLoading(false);  
+    setLoading(false);
 }
 
 }
-
     return (
         <View style={styles.container}>
-            <Header title={'Upload Adhar Card'} showicon={false}/>
-            <ScrollView style={{ marginBottom: 10 }}>
-                <View style={{ padding: "5%", borderStyle: "dashed", borderBottomColor: "#D6D6D6", borderBottomWidth: 1, }}>
+            <Header showicon={false} title={'Upload Driving Licenece '}/>
+            <ScrollView style={{ marginBottom: 10 }} showsVerticalScrollIndicator={false}>
+                <View style={{ padding: "5%", borderStyle: "dashed", borderBottomColor: "#D6D6D6", borderBottomWidth: 1 }}>
                     <Text
                         style={{
                             fontSize: 16,
@@ -78,10 +80,9 @@ setLoading(true);
                         below for quicker verification.
                     </Text>
                 </View>
-                <AdharUpload pickImage={pickImage} setAdharFront={setAdharFront} adharFront={adharFront}/>
-                <UploadedAdharCards setAdharBack={setAdharBack} pickImage={pickImage} adharBack={adharBack} />
-
-                  <ButtonComp
+                <DLUpload pickImage={pickImage} setDlFront={setDlFront} DlFront={DlFront}/>
+                <UploadedDlCard setDlBack={setDlBack} pickImage={pickImage} DlBack={DlBack} />
+                    <ButtonComp
             title="Submit"
             onPress={handleSubmit}
             bg={colors.primary}
@@ -94,13 +95,12 @@ setLoading(true);
             loading={loading}
             mt={50}
           />
-       
             </ScrollView>
         </View>
     )
 }
 
-export default UploadAdhar
+export default UploadDrivingLicence
 
 const styles = StyleSheet.create({
     container: {
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
 
 
 
-const AdharUpload = ({setAdharFront,pickImage,adharFront={adharFront}}) => {
+const DLUpload = ({pickImage, setDlFront, DlFront}) => {
     return (
         <View style={{ marginTop: "10%", padding: "5%", width: "100%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
             <View>
@@ -122,17 +122,15 @@ const AdharUpload = ({setAdharFront,pickImage,adharFront={adharFront}}) => {
                         fontSize: 16
                     }}
                 >Your name and photo Should be clearly
-                    visible on the front of your Aadhar card.
+                    visible on the front of your DL.
                 </Text>
-                
-               {adharFront && (
+                      {DlFront && (
         <Image
-          source={{ uri: adharFront }}
+          source={{ uri: DlFront }}
           style={{ width: "100%", height: 200, marginTop: 20, borderRadius: 10 }}
         />
       )}
             </View>
-           
             <View style={{ marginTop: "10%" }}>
                 <TouchableOpacity style={{
                     width: "90%",
@@ -147,44 +145,40 @@ const AdharUpload = ({setAdharFront,pickImage,adharFront={adharFront}}) => {
                     gap: 10,
                     justifyContent: "center"
                 }}
-                onPress={() => pickImage(setAdharFront)}
+                onPress={() => pickImage(setDlFront)}
                 >
                     <Entypo name="image" size={20} color={colors.primary} />
                     <Text style={{
                         fontFamily: "OpenSans-Regular",
                         fontSize: 16,
                         color: colors.primary
-                    }}>Upload Front</Text>
+                    }}>Upload Photo</Text>
                 </TouchableOpacity>
             </View>
         </View>
     )
 }
 
-const UploadedAdharCards = ({ setAdharBack, pickImage,adharBack}) => {
+const UploadedDlCard = ({setDlBack, DlBack,pickImage}) => {
     return (
         <View style={{ marginTop: "10%", padding: "5%", width: "100%", marginHorizontal: "auto", borderStyle: "dashed", borderColor: "#6D6D6D", borderWidth: 1, borderRadius: 10 }}>
             <View>
-                <Text
+               <Text
                     style={{
                         fontFamily: "OpenSans-Regular",
-                        fontSize: 16,
-                        textAlign: "center"
+                        fontSize: 16
                     }}
-                >
-                    Upload Back-Side photo and details
-                    should be clearly Visible.
+                >Upload the back side of your DL.
                 </Text>
             </View>
             {/* adhar card */}
-             {adharBack && (
+               {DlBack && (
         <Image
-          source={{ uri: adharBack }}
+          source={{ uri: DlBack }}
           style={{ width: "100%", height: 200, marginTop: 20, borderRadius: 10 }}
         />
       )}
-            
-            <View style={{marginTop: "10%" }}>
+            <View style={{ marginTop: "10%" }}>
                 <TouchableOpacity style={{
                     width: "90%",
                     marginHorizontal: "auto",
@@ -198,14 +192,14 @@ const UploadedAdharCards = ({ setAdharBack, pickImage,adharBack}) => {
                     gap: 10,
                     justifyContent: "center"
                 }}
-                onPress={() => pickImage(setAdharBack)}
+                onPress={() => pickImage(setDlBack)}
                 >
                      <Entypo name="image" size={20} color={colors.primary} />
-                    <Text style={{
-                        fontFamily: "OpenSans-Regular",
-                        fontSize: 16,
-                        color: colors.primary
-                    }}>Upload Back</Text>
+                                       <Text style={{
+                                           fontFamily: "OpenSans-Regular",
+                                           fontSize: 16,
+                                           color: colors.primary
+                                       }}>Upload Back</Text>
                 </TouchableOpacity>
             </View>
         </View >

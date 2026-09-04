@@ -4,12 +4,12 @@ import RadioButton from 'react-native-radio-button'
 import { useState } from 'react'
 import Entypo from 'react-native-vector-icons/Entypo'
 import { useNavigation } from '@react-navigation/native'
-import Header from '../components/common/Header'
-import ChooseImage from '../components/info/ChooseImage'
+import Header from '../../components/common/Header'
+import ChooseImage from '../../components/info/ChooseImage'
 import { useSelector } from 'react-redux'
-import apiService from '../services/ApiService'
-import SuccessModal from '../components/common/DynamicModal'
-import { colors } from '../constants/colors'
+import apiService from '../../services/ApiService'
+import SuccessModal from '../../components/common/DynamicModal'
+import { colors } from '../../constants/colors'
 
 const PersonalInfo = () => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -226,7 +226,7 @@ const UploadPic = () => {
             <View style={{ backgroundColor: "#fff", elevation: 5, marginTop: "5%", borderRadius: 10, padding: "5%", borderColor: "#D6D6D6", borderWidth: 1, paddingHorizontal: 20 }}>
                 <View style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                     <View>
-                        <Image source={require("../assets/images/avatar.png")} style={{ height: 50, width: 50, borderRadius: 50 }} />
+                        <Image source={require("../../assets/images/avatar.png")} style={{ height: 50, width: 50, borderRadius: 50 }} />
                     </View>
                     <TouchableOpacity style={{ padding: 10, borderRadius: 10, borderColor: "#D6D6D6", borderWidth: 1, elevation: 5, backgroundColor: "#fff", display: "flex", flexDirection: "row", alignItems: "center", gap: 10 }}>
                         <View>

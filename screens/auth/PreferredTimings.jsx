@@ -4,9 +4,10 @@ import Feather from 'react-native-vector-icons/Feather'
 import { useNavigation } from '@react-navigation/native'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
-import apiService from '../services/ApiService'
-import { colors } from '../constants/colors'
-import ButtonComp from '../components/common/ButtonComp'
+import apiService from '../../services/ApiService'
+import { colors } from '../../constants/colors'
+import ButtonComp from '../../components/common/ButtonComp'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 // Local theme for this screen (matches the design spec)
 const theme = {
@@ -77,7 +78,7 @@ const PreferredTimings = () => {
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <AntDesign name="arrowleft" size={22} color="#000" />
@@ -115,7 +116,7 @@ const PreferredTimings = () => {
             mt={50}
           />
 
-        </View>
+        </SafeAreaView>
     )
 }
 

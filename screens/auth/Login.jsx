@@ -1,14 +1,14 @@
 import { Dimensions, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 const { height, width } = Dimensions.get("window")
 import { useNavigation } from '@react-navigation/native'
-import apiService from '../services/ApiService';
+import apiService from '../../services/ApiService';
 import { useState } from 'react';
-import ButtonComp from '../components/common/ButtonComp';
+import ButtonComp from '../../components/common/ButtonComp';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Heading from '../components/signup/Heading';
-import Input from '../components/signup/Input';
+import Heading from '../../components/signup/Heading';
+import Input from '../../components/signup/Input';
 import Feather from 'react-native-vector-icons/Feather';
-import { colors } from '../constants/colors';
+import { colors } from '../../constants/colors';
 
 const Login = () => {
   const navigation = useNavigation()
@@ -59,7 +59,7 @@ try {
 
         <View style={styles.logoWrapper}>
           <Image
-            source={require('../assets/images/splash.png')}
+            source={require('../../assets/images/splash.png')}
             style={styles.logo}
             resizeMode="contain"
           />

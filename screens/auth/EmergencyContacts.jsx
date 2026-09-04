@@ -14,13 +14,15 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-import AddContactModal from '../../components/account/AddContactModal';
+
 import { colors } from '../../constants/colors';
 import axios from 'axios';
-import { BASE_URI } from '../../config/url';
-import { useSelector } from 'react-redux';
 
-const Emergency = ({ navigation }) => {
+import { useSelector } from 'react-redux';
+import AddContactModal from '../../components/account/AddContactModal';
+import { BASE_URI } from '../../config/url';
+
+const EmergencyContacts = ({ navigation }) => {
   const { token } = useSelector((state) => state.auth);
 const [error,setError] = useState(null);
   const [contacts, setContacts] = useState([]);
@@ -96,7 +98,6 @@ const [error,setError] = useState(null);
           setModalVisible(false);
           setEditingContact(null);
           resetFields();
-          GetContacts();
         }
       } else {
         // ADD — create new contact
@@ -109,11 +110,12 @@ const [error,setError] = useState(null);
         if (res.data.status==='success') {
           setModalVisible(false);
           resetFields();
-          GetContacts(); // refresh list so the new contact actually shows up
+          navigation.goBack(); // Navigate to work-area after adding a contact
+        //   GetContacts(); // refresh list so the new contact actually shows up
         }
       }
     } catch (error) {
-         console.log('GetContacts error:', error?.response?.data.message);
+         console.log('GetContacts error:', error);
       Alert.alert('Alert',  error?.response?.data.message);
     } finally {
       setSaving(false);
@@ -132,24 +134,24 @@ const [error,setError] = useState(null);
     resetFields();
   };
 
-  const GetContacts = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${BASE_URI}/api/deliveryBoy/emergencyContacts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log('res', res.data);
-      setContacts(res.data.data || []);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+//   const GetContacts = async () => {
+//     try {
+//       setLoading(true);
+//       const res = await axios.get(`${BASE_URI}/api/deliveryBoy/emergencyContacts`, {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+//       console.log('res', res.data);
+//       setContacts(res.data.data || []);
+//     } catch (error) {
+//       console.log(error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
-  useEffect(() => {
-    GetContacts();
-  }, []);
+//   useEffect(() => {
+//     GetContacts();
+//   }, []);
 
   return (
     <View style={styles.container}>
@@ -235,7 +237,7 @@ const [error,setError] = useState(null);
   );
 };
 
-export default Emergency;
+export default EmergencyContacts;
 
 const styles = StyleSheet.create({
   container: {

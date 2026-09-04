@@ -58,6 +58,7 @@ const Profile = ({user}) => {
     //         </View>
     //     )
     // }
+    console.log('user',user)
 
     return (
         <View style={styles.screen}>
@@ -79,7 +80,7 @@ const Profile = ({user}) => {
                     { icon: 'identifier', label: 'IFSC code', value: user?.IFSC_code },
                 ]}
             />
-            <Services />
+            <Services user={user}/>
         </View>
     )
 }

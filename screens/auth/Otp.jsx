@@ -3,14 +3,14 @@ const { height } = Dimensions.get("window")
 import { useNavigation } from '@react-navigation/native'
 import { OtpInput } from 'react-native-otp-entry'
 import { useEffect, useState } from 'react'
-import apiService from '../services/ApiService'
+import apiService from '../../services/ApiService'
 import { useDispatch, useSelector } from 'react-redux'
-import { setisAuthenticated, setPhoneDetails, setToken, setUser } from '../redux/authSlice'
-import Button from '../components/signup/Button'
+import { setisAuthenticated, setPhoneDetails, setToken, setUser } from '../../redux/authSlice'
+import Button from '../../components/signup/Button'
 import AntDesign from 'react-native-vector-icons/AntDesign'
-import { colors } from '../constants/colors'
-import ButtonComp from '../components/common/ButtonComp'
-import Heading from '../components/signup/Heading'
+import { colors } from '../../constants/colors'
+import ButtonComp from '../../components/common/ButtonComp'
+import Heading from '../../components/signup/Heading'
 const RESEND_SECONDS = 60;
 const Otp = ({route}) => {
   const {deviceToken} = useSelector((state) => state.auth);
@@ -94,7 +94,7 @@ console.log("Phone Number:", phoneNumber);
 
         <View style={styles.logoWrapper}>
           <Image
-            source={require('../assets/images/splash.png')}
+            source={require('../../assets/images/splash.png')}
             style={styles.logo}
             resizeMode="contain"
           />

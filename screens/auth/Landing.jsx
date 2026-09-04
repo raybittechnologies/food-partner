@@ -50,7 +50,7 @@ const Landing = () => {
     return (
         <View style={styles.container}>
             <Animated.Image
-                source={require('../assets/images/splash.png')}
+                source={require('../../assets/images/splash.png')}
                 style={[styles.logo, { transform: [{ translateX }, { scale: scaleAnim }] }]}
                 resizeMode="contain"
             />

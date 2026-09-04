@@ -27,7 +27,7 @@ const COLORS = {
   rejectedTint: '#FDEAE9',
 }
 
-const Services = () => {
+const Services = ({ user }) => {
   const navigation = useNavigation()
   const [isModalVisible, setModalVisible] = useState(false)
   const dispatch = useDispatch()
@@ -55,7 +55,9 @@ const Services = () => {
                   if (isLogout) {
                     toggleModal()
                   } else {
-                    navigation.navigate(item.screen)
+                    // Pass the current user through to whichever screen we're
+                    // navigating to (e.g. Edit Profile) so it can prefill fields.
+                    navigation.navigate(item.screen, { user })
                   }
                 }}
               >

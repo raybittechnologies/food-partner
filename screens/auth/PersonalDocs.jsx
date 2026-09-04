@@ -2,12 +2,12 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import Entypo from 'react-native-vector-icons/Entypo'
-import Header from '../components/common/Header'
-import apiService from '../services/ApiService'
+import Header from '../../components/common/Header'
+import apiService from '../../services/ApiService'
 import { useSelector } from 'react-redux'
 import { useCallback, useEffect, useState } from 'react'
-import CompletedDoc from '../components/info/CompletedDocs'
-import PendingDoc from '../components/info/PendingDoc'
+import CompletedDoc from '../../components/info/CompletedDocs'
+import PendingDoc from '../../components/info/PendingDoc'
 const PersonalDocs = () => {
 const navigation = useNavigation()
 const { token } = useSelector((state) => state.auth);

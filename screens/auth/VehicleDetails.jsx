@@ -1,15 +1,15 @@
 import { ActivityIndicator, Image, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Entypo from 'react-native-vector-icons/Entypo'
 import { useNavigation } from '@react-navigation/native'
-import Header from '../components/common/Header'
-import InputField from '../components/common/InputField'
+import Header from '../../components/common/Header'
+import InputField from '../../components/common/InputField'
 import { useState } from 'react'
-import DynamicDropdown from '../components/common/Dropdown'
+import DynamicDropdown from '../../components/common/Dropdown'
 import { useSelector } from 'react-redux'
-import useImagePicker from '../components/hooks/useImagePicker'
-import apiService from '../services/ApiService'
-import { colors } from '../constants/colors'
-import ButtonComp from '../components/common/ButtonComp'
+import useImagePicker from '../../components/hooks/useImagePicker'
+import apiService from '../../services/ApiService'
+import { colors } from '../../constants/colors'
+import ButtonComp from '../../components/common/ButtonComp'
 
 
 

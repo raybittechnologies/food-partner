@@ -44,7 +44,7 @@ export const LocationProvider = ({ children }) => {
         setLocation({ latitude, longitude });
       },
       error => {
-        console.error('❌ watchPosition error:', error);
+        console.log('❌ watchPosition error:', error);
       },
       {
         enableHighAccuracy: true,

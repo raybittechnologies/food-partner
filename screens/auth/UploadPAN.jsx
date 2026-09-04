@@ -3,13 +3,13 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import { useNavigation } from '@react-navigation/native'
 import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-import Header from '../components/common/Header'
+import Header from '../../components/common/Header'
 import { useSelector } from 'react-redux'
 import { useState } from 'react'
-import useImagePicker from '../components/hooks/useImagePicker'
-import apiService from '../services/ApiService'
-import { colors } from '../constants/colors'
-import ButtonComp from '../components/common/ButtonComp'
+import useImagePicker from '../../components/hooks/useImagePicker'
+import apiService from '../../services/ApiService'
+import { colors } from '../../constants/colors'
+import ButtonComp from '../../components/common/ButtonComp'
 
 const UploadPAN = () => {
     const [loading, setLoading] = useState(false);

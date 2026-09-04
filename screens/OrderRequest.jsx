@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, Text, TouchableOpacity, View, Image, ScrollView, ActivityIndicator } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View, Image, ScrollView, ActivityIndicator, Platform } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearOrder, setDelivery, setOrder } from '../redux/authSlice';
 import apiService from '../services/ApiService';
 import { colors } from '../constants/colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const theme = {
     green: '#5B8C6E',
@@ -99,7 +100,7 @@ const OrderRequest = ({route}) => {
     const dropKm = ((order?.delivery_boy_route?.full_journey?.distanceValue ?? 0) / 1000) - pickupKm;
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                 <View style={styles.mapWrap}>
                     <View style={styles.mapCircle}>
@@ -198,7 +199,7 @@ const OrderRequest = ({route}) => {
                     <Text style={styles.declineText}>Decline Request</Text>
                 </TouchableOpacity>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     )
 }
 
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#fff",
         paddingHorizontal: 20,
-        paddingTop: "10%",
+        // paddingTop: Platform.OS === 'android' ? 30 :70,
     },
     mapWrap: {
         width: 130,

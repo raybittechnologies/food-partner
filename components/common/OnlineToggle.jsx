@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, Animated, StyleSheet, ActivityIndicator } from 'react-native'
 import { useSelector } from 'react-redux'
 
 const OnlineToggle = ({ onToggle, loading = false }) => {
@@ -15,15 +15,14 @@ const OnlineToggle = ({ onToggle, loading = false }) => {
     }).start()
   }, [isOnline])
 
-  // Track + thumb colors interpolate between offline/online states
   const trackColor = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#E4E4E4', '#B7EBC9'], // light green track when online
+    outputRange: ['#E4E4E4', '#B7EBC9'],
   })
 
   const thumbColor = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#ffffff', '#4E8B6B'], // darker green thumb when online
+    outputRange: ['#ffffff', '#4E8B6B'],
   })
 
   const thumbTranslate = anim.interpolate({
@@ -39,6 +38,7 @@ const OnlineToggle = ({ onToggle, loading = false }) => {
       style={[
         styles.pill,
         { backgroundColor: isOnline ? '#EAF7EE' : '#F2F2F2' },
+        loading && styles.pillLoading,
       ]}
     >
       <View style={styles.labelRow}>
@@ -54,7 +54,7 @@ const OnlineToggle = ({ onToggle, loading = false }) => {
             { color: isOnline ? '#4E8B6B' : '#9A9A9A' },
           ]}
         >
-          {isOnline ? 'Online' : 'Offline'}
+          {loading ? 'Updating…' : isOnline ? 'Online' : 'Offline'}
         </Text>
       </View>
 
@@ -67,7 +67,15 @@ const OnlineToggle = ({ onToggle, loading = false }) => {
               transform: [{ translateX: thumbTranslate }],
             },
           ]}
-        />
+        >
+          {loading && (
+            <ActivityIndicator
+              size="small"
+              color={isOnline ? '#ffffff' : '#4E8B6B'}
+              style={StyleSheet.absoluteFill}
+            />
+          )}
+        </Animated.View>
       </Animated.View>
     </TouchableOpacity>
   )
@@ -86,6 +94,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignSelf: 'flex-start',
     minWidth: 190,
+  },
+  pillLoading: {
+    opacity: 0.65,
   },
   labelRow: {
     flexDirection: 'row',
@@ -112,6 +123,8 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,

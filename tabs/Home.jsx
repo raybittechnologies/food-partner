@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
     StyleSheet,
     Text,
@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     ScrollView,
     SafeAreaView,
+    Alert,
 } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -69,10 +70,12 @@ const ProgressRing = ({ completed, total, size = 100, strokeWidth = 10 }) => {
 const Home = () => {
     const {user,token}=useSelector((state)=>state.auth);
      const { socket } = useSocket();
+     const toggleTimeoutRef = useRef(null) 
      const [loading,setLoading]=useState(false);
     const dispatch = useDispatch();
     const [data,setData]=useState(null);
       const { location } = useLocation();
+      const [toggleLoading, setToggleLoading] = useState(false)
 
     const today = new Date()
     const navigation=useNavigation();
@@ -112,21 +115,32 @@ const Home = () => {
         },
     ]
 
-   const handleToggleOnline = (next) => {
-  if (!location?.latitude || !location?.longitude) {
-    console.log('⚠️ no location yet:', location)
-    return
-  }
+const handleToggleOnline = (next) => {
+
+  setToggleLoading(true)
 
   const payload = {
     location: { lat: location.latitude, lng: location.longitude },
     status: next ? 'online' : 'offline',
   }
-
-  socket?.emit('deliveryBoyConnect', payload, () => {
-    console.log('✅ ack received — server confirmed the update')
+console.log(payload)
+    console.log('handleToggleOnline called with next:', socket.id)
+  socket?.emit('deliveryBoyConnect', payload, (res) => {
+    console.log('✅ ack received — server confirmed the update',res)
+    // Note: the ack only confirms the server got the request,
+    // not that the status flip happened — the real confirmation
+    // is the 'deliveryBoyConnected' listener below.
   })
+
+  // Safety net so the loader can't get stuck forever if the
+  // 'deliveryBoyConnected' event never arrives (dropped connection, etc.)
+  if (toggleTimeoutRef.current) clearTimeout(toggleTimeoutRef.current)
+  toggleTimeoutRef.current = setTimeout(() => {
+    setToggleLoading(false)
+    Alert.alert('Still working on it', 'Taking longer than usual to update your status. Please check your connection.')
+  }, 8000)
 }
+
 
 const handleEarnings = async() => {
     try {
@@ -150,11 +164,20 @@ const handleEarnings = async() => {
 
 
 useEffect(() => {
-    socket?.on('deliveryBoyConnected', (data) => {
-      dispatch(setIsOnline(data.status === 'online'?true:false))
-    })
-},[])
+  socket?.on('deliveryBoyConnected', (data) => {
 
+    console.log('🔔 deliveryBoyConnected event received:', data)
+    dispatch(setIsOnline(data.status === 'online' ? true : false))
+    setToggleLoading(false)
+    if (toggleTimeoutRef.current) clearTimeout(toggleTimeoutRef.current)
+  }
+)
+
+  return () => {
+    socket?.off('deliveryBoyConnected')
+    if (toggleTimeoutRef.current) clearTimeout(toggleTimeoutRef.current)
+  }
+}, [])
  
 
     return (
@@ -173,7 +196,7 @@ useEffect(() => {
                         <TouchableOpacity style={styles.bellButton} onPress={() => navigation.navigate('notifications')}>
                             <Ionicons name="notifications-outline" size={20} color="#202020" />
                         </TouchableOpacity>
-                        <TouchableOpacity >
+                        <TouchableOpacity onPress={()=>navigation.navigate('wallet')}>
                         <Image
                             source={{ uri: 'https://i.pravatar.cc/100?img=12' }}
                             style={styles.avatar}
@@ -182,8 +205,7 @@ useEffect(() => {
                     </View>
                 </View>
 
-                <OnlineToggle  onToggle={handleToggleOnline} />
-
+<OnlineToggle onToggle={handleToggleOnline} loading={toggleLoading} />
                 {/* Today's Performance */}
                 <Text style={styles.sectionTitle}>Today's Performance</Text>
                 <View style={styles.statsGrid}>

@@ -32,6 +32,15 @@ async function onDisplayNotification(remoteMessage) {
         { title: 'Reject', pressAction: { id: 'reject' } },
       ],
     },
+      ios: {
+      foregroundPresentationOptions: {
+        alert: true,
+        badge: true,
+        sound: true,
+      },
+      sound: 'default',
+      categoryId: 'default', // only if you've registered iOS categories for Accept/Reject actions
+    },
   });
 }
 
@@ -93,6 +102,7 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
 });
 
 notifee.onForegroundEvent(({ type, detail }) => {
+  console.log('🔔 Notifee foreground event:', type, detail);
   const { notification, pressAction } = detail;
   console.log('🔔 Notifee foreground event:', type, pressAction?.id);
 

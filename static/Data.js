@@ -7,32 +7,32 @@ export const data = [
   // },
   {
     id: 6,
-    icon: 'wallet-outline', // Ionicons (represents emergency/first aid)
+    icon: 'wallet-outline', 
     title: 'My Wallet',
     screen: 'wallet',
   },
 
   {
     id: 2,
-    icon: 'medkit-outline', // Ionicons (represents emergency/first aid)
+    icon: 'medkit-outline', 
     title: 'Emergency Details',
     screen: 'emergency-details',
   },
   {
     id: 3,
-    icon: 'notifications-outline', // Ionicons (perfect for notifications)
-    title: 'Notifications',
-    screen:'notifications'
+    icon: 'person', 
+    title: 'Edit Profile',
+    screen:'edit-profile'
   },
   {
     id: 4,
-    icon: 'cash-outline', // Ionicons (suitable for bank or money)
+    icon: 'cash-outline', 
     title: 'Bank Details',
     screen: 'bank-details',
   },
   {
     id: 5,
-    icon: 'log-out-outline', // Ionicons (commonly used for logout)
+    icon: 'log-out-outline', 
     title: 'Logout',
   },
 ]

@@ -68,11 +68,11 @@ const handleSubmit = async() => {
   value={inputs.account_no}
   onChangeText={(text) => setInputs({ ...inputs, account_no: text })}
 />
-              <InputField
+<InputField
   label="Re-Enter Account Number"
   placeholder="Enter Account Number"
-  value={setConfirmAccountNo}
-  onChangeText={(text) =>  setConfirmAccountNo(text)}
+  value={confirmAccountNo}
+  onChangeText={(text) => setConfirmAccountNo(text)}
 />
  <DynamicDropdown
   label="Select your Bank"
@@ -111,6 +111,8 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#fff",
         padding: 16,
+        paddingTop:Platform.OS === "ios" ? 40 : 0
+    
     }
 })
 

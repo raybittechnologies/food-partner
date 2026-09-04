@@ -19,11 +19,14 @@ import DynamicModal from '../../components/common/DynamicModal';
 import { colors } from '../../constants/colors';
 import ButtonComp from '../../components/common/ButtonComp';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BASE_URI } from '../../config/url';
+import axios from 'axios';
+import { useSelector } from 'react-redux';
 
-// TODO: replace with your real base URL (e.g. from an env/config file)
-const BASE_URL = 'https://your-api-domain.com/api';
+
 
 const BankInfo = () => {
+  const {token} = useSelector((state) => state.auth);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [accountNumber, setAccountNumber] = useState('');
@@ -45,39 +48,26 @@ const BankInfo = () => {
     if (!validate()) return;
 
     const payload = {
-      accountNumber,
-      bankName,
-      bankCode,
-      accountHolder,
+      account_no: accountNumber,
+      bank_name: bankName,
+       IFSC_code:bankCode,
+      // accountHolder,
     };
 
-    try {
-      setLoading(true);
-
-      // If auth is required, pull the token from wherever you store it
-      // (AsyncStorage, redux, context, etc.) and add it to the headers below.
-      // const token = await AsyncStorage.getItem('authToken');
-
-      const response = await fetch(`${BASE_URL}/bank-info`, {
-        method: 'POST',
+     try {
+      setLoading(true)
+      const res = await axios.patch(`${BASE_URI}/api/deliveryBoy/bankUpdate`,payload,{
+        
         headers: {
-          'Content-Type': 'application/json',
-          // Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data?.message || 'Failed to update bank info');
-      }
-
-      setModalVisible(true);
+          'Authorization':  `Bearer ${token} `
+        }
+      })
+       console.log(res.data)
+       setModalVisible(true)
     } catch (error) {
-      Alert.alert('Error', error.message || 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
+      console.log(error)
+    }finally {
+      setLoading(false)
     }
   };
 
@@ -157,11 +147,7 @@ const BankInfo = () => {
         </View>
 
         <View style={styles.buttonWrapper}>
-          {loading ? (
-            <View style={[styles.button, styles.buttonDisabled]}>
-              <ActivityIndicator color="#fff" />
-            </View>
-          ) : (
+     
             <ButtonComp
               title="Update Info"
               onPress={handleUpdateInfo}
@@ -175,7 +161,7 @@ const BankInfo = () => {
               loading={loading}
               mt={50}
             />
-          )}
+          
         </View>
 
         <DynamicModal

@@ -37,7 +37,7 @@ const EarningsCard = ({ totalEarnings, onDutyMinutes = 30, ordersCompleted, star
 
       <View style={styles.card}>
         <Text style={styles.subHeading}>Total Earnings</Text>
-        <Text style={styles.amount}>₹{totalEarnings}</Text>
+        <Text style={styles.amount}>₹{totalEarnings || 0}</Text>
 
         <View style={styles.divider} />
 
@@ -50,7 +50,7 @@ const EarningsCard = ({ totalEarnings, onDutyMinutes = 30, ordersCompleted, star
           <Ionicons name="bag-handle-outline" size={18} color={colors.primary} />
         </View>
         <View>
-          <Text style={styles.ordersCount}>{ordersCompleted}</Text>
+          <Text style={styles.ordersCount}>{ordersCompleted || 0}</Text>
           <Text style={styles.ordersLabel}>Orders Completed</Text>
         </View>
       </View>

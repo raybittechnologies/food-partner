@@ -1,60 +1,54 @@
-import { FlatList, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React from 'react';
+import { FlatList, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View, RefreshControl, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
 import { colors } from '../constants/colors'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const ORDERS_DATA = [
-  {
-    id: '1',
-    item: 'Pizza + Coke',
-    location: 'Srinagar, J&K',
-    earnings: 500,
-    date: 'June 5, 2023',
-    status: 'Delivered',
-  },
-  {
-    id: '2',
-    item: 'Burger Combo',
-    location: 'Rajbagh, Srinagar',
-    earnings: 300,
-    date: 'May 20, 2023',
-    status: 'Delivered',
-  },
-  {
-    id: '3',
-    item: 'Biryani',
-    location: 'Lal Chowk, Srinagar',
-    earnings: 400,
-    date: 'May 10, 2023',
-    status: 'Delivered',
-  },
-  {
-    id: '4',
-    item: 'Tandoori Chicken',
-    location: 'Nowgam, Srinagar',
-    earnings: 450,
-    date: 'May 1, 2023',
-    status: 'Delivered',
-  },
-  {
-    id: '5',
-    item: 'Veg Thali',
-    location: 'Hyderpora, Srinagar',
-    earnings: 350,
-    date: 'April 25, 2023',
-    status: 'Delivered',
-  },
-];
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import { BASE_URI } from '../config/url';
 
 const Orders = () => {
+  const [loading, setLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [orders, setOrders] = useState([])
+  const {token} = useSelector((state) => state.auth)
   const navigation = useNavigation()
-const insets=useSafeAreaInsets()
+  const insets = useSafeAreaInsets()
+
+  const GetOrders = async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true)
+      } else {
+        setLoading(true)
+      }
+      const res = await axios.get(`${BASE_URI}/api/deliveryBoy/myOrders`, {
+        headers: {
+          'Authorization': `Bearer ${token} `
+        }
+      })
+      setOrders(res.data.data.orders ?? [])
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    GetOrders()
+  }, [])
+
+  const handleRefresh = useCallback(() => {
+    GetOrders(true)
+  }, [])
+
   return (
     <View style={styles.container}>
-      <View style={[styles.header,{paddingTop:insets.top}]}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <AntDesign name="arrowleft" size={22} color="#000" />
         </TouchableOpacity>
@@ -62,15 +56,43 @@ const insets=useSafeAreaInsets()
         <View style={styles.backBtn} />
       </View>
 
-      <Text style={styles.subheading}>{ORDERS_DATA.length} deliveries completed</Text>
+      <Text style={styles.subheading}>{orders.length} deliveries completed</Text>
 
-      <FlatList
-        data={ORDERS_DATA}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <OrderCard order={item} />}
-        contentContainerStyle={{ paddingBottom: 24, paddingTop: 6 }}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <View style={styles.loaderWrap}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={orders}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={({ item }) => <OrderCard order={item} />}
+          contentContainerStyle={[
+            { paddingBottom: 24, paddingTop: 6 },
+            orders.length === 0 && styles.emptyContentContainer,
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="receipt-outline" size={28} color={colors.primary} />
+              </View>
+              <Text style={styles.emptyTitle}>No orders yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Your completed deliveries will show up here once you start accepting orders.
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 };
@@ -137,6 +159,42 @@ const styles = StyleSheet.create({
     color: '#8A8A8A',
     textAlign: 'center',
     marginBottom: 18,
+  },
+  loaderWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContentContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.primary + '14',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontFamily: 'OpenSans-Bold',
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    fontFamily: 'OpenSans-Regular',
+    color: '#8A8A8A',
+    textAlign: 'center',
+    lineHeight: 18,
   },
   card: {
     borderWidth: 1,
