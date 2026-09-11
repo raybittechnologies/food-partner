@@ -1,7 +1,7 @@
 import { Alert, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { ScrollView } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 
 import ButtonComp from '../components/common/ButtonComp'
@@ -42,6 +42,7 @@ const Earnings = () => {
   const [loading,setLoading] = useState(false)
   const [data, setData] = useState()
   const [withdrawVisible, setWithdrawVisible] = useState(false)
+  const [balance, setBalance] = useState(0)
   const [startDate, setStartDate] = useState(getStartOfWeek(new Date()))
 
   const endDate = getEndOfWeek(startDate)
@@ -59,6 +60,7 @@ const Earnings = () => {
   }
 
   const handleWithdraw = async(amount) => {
+    console.log("Withdraw amount:", amount)
    try {
     setLoading(true)
     const res = await axios.post(`${BASE_URI}/api/deliveryboy/withdraw`,{
@@ -71,11 +73,32 @@ const Earnings = () => {
     console.log(res.data.data.message)
     Alert.alert(res.data.message)
    } catch (error) {
-    console.log(error)
+    Alert.alert("Alert", error.response?.data?.message || error.message)
+    console.log(error.response?.data?.message || error.message)
    }finally {
     setLoading(false)
    }
   }
+
+      const getBalance = async() => {
+    try {
+        setLoading(true)
+        const response = await axios.get(`${BASE_URI}/api/deliveryboy/wallet`,{
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        console.log(response.data.data.transactions)
+        setBalance(response.data.data.wallet_balance)
+        setLoading(false)
+      
+    }catch (error) {
+        console.log(error)
+    }finally {
+        setLoading(false)
+    }
+    
+}
 
   const handleEarnings = async() => {
     try {
@@ -98,9 +121,12 @@ const Earnings = () => {
     }
   }
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     handleEarnings()
-  },[startDate]) // ✅ refetch whenever the week changes
+    getBalance()
+  },[startDate])) // ✅ refetch whenever the screen is focused
+
+
 
   return (
     <View style={styles.container}>
@@ -140,7 +166,7 @@ const Earnings = () => {
       <WithdrawModal
         visible={withdrawVisible}
         onClose={() => setWithdrawVisible(false)}
-        availableBalance={data?.total_earnings}
+        availableBalance={balance}
         onWithdraw={handleWithdraw}
         loading={loading}
       />

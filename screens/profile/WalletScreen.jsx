@@ -227,6 +227,12 @@ const formatTxnDate = (dateStr) => {
   }) // 11:33 AM
   return `${datePart} · ${timePart}`
 }
+
+const getTxnDisplay = (txn) => {
+  const numericAmount = parseFloat(txn.amount)
+  const isCredit = numericAmount >= 0 // earning & deposit are positive, cod_deduction is negative
+  return { numericAmount, isCredit }
+}
     
 
     return (
@@ -289,6 +295,8 @@ const formatTxnDate = (dateStr) => {
                     </View>
                 </View>
 
+                
+
                 {/* Toggle: Recent Transactions <-> Pay Via */}
 
                     <View style={styles.section}>
@@ -300,24 +308,31 @@ const formatTxnDate = (dateStr) => {
                         </View>
                         {loading ? <ActivityIndicator size="large" color={colors.primary} /> : (
                         <View style={{ gap: 12 }}>
-                            {transactions.slice(0, 4).map((txn) => (
-                                <View key={txn.id} style={styles.txnCard}>
-                                    <View style={[styles.txnIconWrap, txn.type === 'credit' ? styles.txnIconCredit : styles.txnIconDebit]}>
-                                        <AntDesign
-                                            name={txn.type === 'credit' ? 'arrowdown' : 'arrowup'}
-                                            size={14}
-                                            color={txn.type === 'credit' ? '#1E9E5A' : '#D9534F'}
-                                        />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.txnTitle}>{txn.description}</Text>
-                                        <Text style={styles.txnSubtitle}>{formatTxnDate(txn.created_at)}</Text>
-                                    </View>
-                                    <Text style={[styles.txnAmount, txn.type === 'credit' ? styles.txnAmountCredit : styles.txnAmountDebit]}>
-                                        {txn.type === 'credit' ? '+' : '-'}₹{Math.abs(txn.amount)}
-                                    </Text>
-                                </View>
-                            ))}
+                         {transactions.slice(0, 4).map((txn) => {
+    const numericAmount = parseFloat(txn.amount)
+    const isCredit = numericAmount >= 0
+
+    return (
+        <View key={txn.id} style={styles.txnCard}>
+            <View style={[styles.txnIconWrap, isCredit ? styles.txnIconCredit : styles.txnIconDebit]}>
+                <AntDesign
+                    name={isCredit ? 'arrowdown' : 'arrowup'}
+                    size={14}
+                    color={isCredit ? '#1E9E5A' : '#D9534F'}
+                />
+            </View>
+            <View style={{ flex: 1 }}>
+                <Text style={styles.txnTitle} numberOfLines={2}>
+                    {txn.description}
+                </Text>
+                <Text style={styles.txnSubtitle}>{formatTxnDate(txn.created_at)}</Text>
+            </View>
+            <Text style={[styles.txnAmount, isCredit ? styles.txnAmountCredit : styles.txnAmountDebit]}>
+                {isCredit ? '+' : '-'}₹{Math.abs(numericAmount)}
+            </Text>
+        </View>
+    )
+})}
                         </View>)}
                     </View>
 
@@ -386,7 +401,8 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        // justifyContent: 'space-between',
+        gap: 12,
          padding:20,
           marginBottom:20
 

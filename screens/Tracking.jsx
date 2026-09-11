@@ -62,23 +62,30 @@ useEffect(() => {
     }
   };
 
-  const handleSubmit = async () => {
-    try {
-      const res = await apiService(
-        `/api/deliveryBoy/deliverOrder?order_id=${order?.order_id}`,
-        'PATCH',
-        null,
-        { Authorization: `Bearer ${token}` },
-      );
-      console.log(res)
-      dispatch(setSubmitOrder(false));
-      dispatch(clearOrder());
-      navigation.navigate('dashboard', { screen: 'Home' });
-    } catch (err) {
-      console.error('Failed to complete order:', err);
-      Alert.alert('Error', 'Failed to submit the order. Please try again.');
+const handleSubmit = async (otp) => {
+  try {
+    const res = await apiService(
+      `/api/deliveryBoy/deliverOrder?order_id=${order?.order_id}`,
+      'PATCH',
+      { otp }, // send otp in the request body
+      { Authorization: `Bearer ${token}` },
+    );
+    console.log(res)
+    if(res.error) {
+      Alert.alert('Alert', res.error || 'Failed to submit the order. Please try again.');
+      return;
+    }else {
+      Alert.alert('Success', res.data?.message || 'Order submitted successfully!');
+         dispatch(setSubmitOrder(false));
+    dispatch(clearOrder());
+    navigation.navigate('dashboard', { screen: 'Home' });
     }
-  };
+ 
+  } catch (err) {
+    console.error('Failed to complete order:', err);
+    Alert.alert('Error', 'Failed to submit the order. Please try again.');
+  }
+};
 
   return (
     <View style={styles.container}>

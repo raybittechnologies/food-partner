@@ -11,7 +11,8 @@ import apiService from '../services/ApiService'
 import { colors } from '../constants/colors'
 import ButtonComp from '../components/common/ButtonComp'
 
-const BankAccountDetails = () => {
+const BankAccountDetails = ({route}) => {
+    const {user} = route.params || {};
     const { token } = useSelector((state) => state.auth);
     const [loading, setLoading] = useState(false);
     const navigation = useNavigation()
@@ -23,6 +24,16 @@ const BankAccountDetails = () => {
     });
 
 
+
+useEffect(() => {
+  if (user) {
+    setInputs({
+      account_no: user?.account_no || '',
+      IFSC_code: user?.IFSC_code || '',
+      bank_name: user?.bank_name || '',
+    });
+  }
+}, [user]);
 const handleSubmit = async() => {
     if (inputs.account_no.length<16 || !inputs.IFSC_code || !inputs.bank_name || !confirmAccountNo) {
         alert("Please fill all fields correctly.");

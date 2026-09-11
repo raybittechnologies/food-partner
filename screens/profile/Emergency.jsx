@@ -156,7 +156,7 @@ const [error,setError] = useState(null);
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <AntDesign name="arrowleft" size={28} color="#000" />
+          <AntDesign name="arrowleft" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Emergency Details</Text>
       </View>
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 50,
+    paddingTop: Platform.OS === 'android' ? 16: 50,
     paddingHorizontal: 16,
   },
   header: {
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
     color: '#000',
     fontFamily: 'OpenSans-Bold',

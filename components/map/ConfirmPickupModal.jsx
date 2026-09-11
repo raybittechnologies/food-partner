@@ -35,11 +35,11 @@ const ConfirmPickupModal = ({ visible, onClose }) => {
                 onClose();
                 navigation.replace("Tracking");
             } else {
-                Alert.alert("Error", "Failed to confirm pickup. Please try again.");
+                Alert.alert("Alert", res.error || "Failed to confirm pickup. Please try again.");
             }
         } catch (error) {
             console.error("Error confirming pickup:", error);
-            Alert.alert("Error", "Failed to confirm pickup. Please try again.");
+            Alert.alert("Alert", "Failed to confirm pickup. Please try again.");
         } finally {
             setIsConfirming(false);
         }

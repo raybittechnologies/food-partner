@@ -2,7 +2,7 @@ import { FlatList, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View
 import React, { useEffect, useState, useCallback } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import Ionicons from 'react-native-vector-icons/Ionicons'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { colors } from '../constants/colors'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -29,6 +29,7 @@ const Orders = () => {
           'Authorization': `Bearer ${token} `
         }
       })
+      console.log(res.data.data.orders)
       setOrders(res.data.data.orders ?? [])
     } catch (error) {
       console.log(error)
@@ -38,9 +39,11 @@ const Orders = () => {
     }
   }
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     GetOrders()
-  }, [])
+  }, []))
+
+
 
   const handleRefresh = useCallback(() => {
     GetOrders(true)
@@ -65,7 +68,7 @@ const Orders = () => {
       ) : (
         <FlatList
           data={orders}
-          keyExtractor={(item) => String(item.id)}
+          keyExtractor={(item) => (item.order_id)}
           renderItem={({ item }) => <OrderCard order={item} />}
           contentContainerStyle={[
             { paddingBottom: 24, paddingTop: 6 },

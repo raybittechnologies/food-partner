@@ -11,7 +11,7 @@ import {
   Alert,
   KeyboardAvoidingView,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Buttoncomp from '../../components/common/ButtonComp';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
@@ -25,7 +25,8 @@ import { useSelector } from 'react-redux';
 
 
 
-const BankInfo = () => {
+const BankInfo = ({route}) => {
+  const {user} = route.params || {};
   const {token} = useSelector((state) => state.auth);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -35,6 +36,16 @@ const BankInfo = () => {
   const [accountHolder, setAccountHolder] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+
+
+  useEffect(() => {
+  if (user) {
+    setAccountNumber(user?.account_no || '');
+    setBankName(user?.bank_name || '');
+    setBankCode(user?.IFSC_code || '');
+    setAccountHolder(user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : '');
+  }
+}, [user]);
 
   const validate = () => {
     if (!accountNumber.trim() || !bankName.trim() || !bankCode.trim() || !accountHolder.trim()) {
@@ -84,7 +95,7 @@ const BankInfo = () => {
       >
         <View style={[styles.header, { paddingTop: insets.top }]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <AntDesign name="arrowleft" size={28} color="#000" />
+            <AntDesign name="arrowleft" size={24} color="#000" />
           </TouchableOpacity>
           <Text style={styles.title}>Bank Info</Text>
         </View>
@@ -190,7 +201,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
     color: '#000',
     fontFamily: 'OpenSans-Bold',

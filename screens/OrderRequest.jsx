@@ -85,23 +85,23 @@ const OrderRequest = ({route}) => {
     };
 
     // Countdown ticker
-    useEffect(() => {
-        if (isAccepting) return;
+    // useEffect(() => {
+    //     if (isAccepting) return;
 
-        if (timeLeft <= 0) {
-            handleTimeOut();
-            return;
-        }
-        const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
-        return () => clearTimeout(id);
-    }, [timeLeft, isAccepting]);
+    //     if (timeLeft <= 0) {
+    //         handleTimeOut();
+    //         return;
+    //     }
+    //     const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    //     return () => clearTimeout(id);
+    // }, [timeLeft, isAccepting]);
 
     const pickupKm = (order?.delivery_boy_route?.to_restaurant?.distanceValue ?? 0) / 1000;
     const dropKm = ((order?.delivery_boy_route?.full_journey?.distanceValue ?? 0) / 1000) - pickupKm;
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 ,marginTop: Platform.OS === 'android' ? 50 : 50}}>
                 <View style={styles.mapWrap}>
                     <View style={styles.mapCircle}>
                         <Image
@@ -133,7 +133,7 @@ const OrderRequest = ({route}) => {
                         <View style={styles.distanceItem}>
                             <Ionicons name="flag-outline" size={16} color={theme.green} />
                             <Text style={styles.distanceText}>
-                                Total: <Text style={styles.distanceValue}>{dropKm.toFixed(2)} km</Text>
+                                Drop: <Text style={styles.distanceValue}>{dropKm.toFixed(2)} km</Text>
                             </Text>
                         </View>
                     </View>
@@ -217,6 +217,7 @@ const styles = StyleSheet.create({
         height: 130,
         alignSelf: 'center',
         marginBottom: 20,
+
     },
     mapCircle: {
         width: 130,
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
         borderRadius: 65,
         borderWidth: 1.5,
         borderColor: theme.green,
-        overflow: 'hidden',
+        // overflow: 'hidden',
         backgroundColor: '#F2F2F2',
     },
     mapImage: {

@@ -43,6 +43,9 @@ const formatTxnDate = (dateStr) => {
     return `${datePart} · ${timePart}`
 }
 
+// helper: derive credit/debit from the signed amount, not the raw type string
+const isCreditTxn = (txn) => parseFloat(txn.amount) >= 0
+
 const Transactions = () => {
     const { token } = useSelector((state) => state.auth)
     const navigation = useNavigation()
@@ -78,41 +81,48 @@ const Transactions = () => {
         fetchTransactions()
     }
 
-    const filteredTransactions =
-        activeFilter === 'all'
-            ? transactions
-            : transactions.filter((txn) => txn.type === activeFilter)
+const filteredTransactions =
+    activeFilter === 'all'
+        ? transactions
+        : transactions.filter((txn) =>
+              activeFilter === 'credit' ? isCreditTxn(txn) : !isCreditTxn(txn)
+          )
 
-    const renderItem = ({ item }) => (
+const renderItem = ({ item }) => {
+    const numericAmount = parseFloat(item.amount)
+    const credit = numericAmount >= 0
+
+    return (
         <View style={styles.txnCard}>
             <View
                 style={[
                     styles.txnIconWrap,
-                    item.type === 'credit' ? styles.txnIconCredit : styles.txnIconDebit,
+                    credit ? styles.txnIconCredit : styles.txnIconDebit,
                 ]}
             >
                 <AntDesign
-                    name={item.type === 'credit' ? 'arrowdown' : 'arrowup'}
+                    name={credit ? 'arrowdown' : 'arrowup'}
                     size={14}
-                    color={item.type === 'credit' ? '#1E9E5A' : '#D9534F'}
+                    color={credit ? '#1E9E5A' : '#D9534F'}
                 />
             </View>
             <View style={{ flex: 1 }}>
-                <Text style={styles.txnTitle} numberOfLines={1}>
-                    {item.description || (item.type === 'credit' ? 'Wallet Credit' : 'Wallet Debit')}
+                <Text style={styles.txnTitle} numberOfLines={2}>
+                    {item.description || (credit ? 'Wallet Credit' : 'Wallet Debit')}
                 </Text>
                 <Text style={styles.txnSubtitle}>{formatTxnDate(item.created_at)}</Text>
             </View>
             <Text
                 style={[
                     styles.txnAmount,
-                    item.type === 'credit' ? styles.txnAmountCredit : styles.txnAmountDebit,
+                    credit ? styles.txnAmountCredit : styles.txnAmountDebit,
                 ]}
             >
-                {item.type === 'credit' ? '+' : '-'}₹{Math.abs(item.amount)}
+                {credit ? '+' : '-'}₹{Math.abs(numericAmount)}
             </Text>
         </View>
     )
+}
 
     const renderEmpty = () => {
         if (loading) return null

@@ -14,7 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import Feather from 'react-native-vector-icons/Feather'
 import { colors } from '../constants/colors'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
 import OnlineToggle from '../components/common/OnlineToggle'
 import { clearOrder, setDelivery, setIsOnline } from '../redux/authSlice'
@@ -109,7 +109,7 @@ const Home = () => {
         {
             key: 'withdrawals',
             value: `₹${todayPerformance?.withdrawals ?? '0.00'}`,
-            label: 'Withdrawals',
+            label: "Today's Withdrawals",
             iconBg: '#FEF6DD',
             icon: <Ionicons name="wallet-outline" size={20} color="#F5B400" />,
         },
@@ -158,9 +158,11 @@ const handleEarnings = async() => {
     }
   }
 
-    useEffect(() => {
-      handleEarnings()
-    },[])
+  useFocusEffect(
+  React.useCallback(() => {
+    handleEarnings()
+  }, [])
+)
 
 
 useEffect(() => {
@@ -193,9 +195,9 @@ useEffect(() => {
                         <Text style={styles.dateText}>{formattedDate}</Text>
                     </View>
                     <View style={styles.headerIcons}>
-                        <TouchableOpacity style={styles.bellButton} onPress={() => navigation.navigate('notifications')}>
+                        {/* <TouchableOpacity style={styles.bellButton} onPress={() => navigation.navigate('notifications')}>
                             <Ionicons name="notifications-outline" size={20} color="#202020" />
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                         <TouchableOpacity onPress={()=>navigation.navigate('wallet')}>
                         <Image
                             source={{ uri: 'https://i.pravatar.cc/100?img=12' }}
@@ -208,17 +210,23 @@ useEffect(() => {
 <OnlineToggle onToggle={handleToggleOnline} loading={toggleLoading} />
                 {/* Today's Performance */}
                 <Text style={styles.sectionTitle}>Today's Performance</Text>
-                <View style={styles.statsGrid}>
-                    {performanceStats.map(stat => (
-                        <View key={stat.key} style={styles.statCard}>
-                            <View style={[styles.statIconWrap, { backgroundColor: stat.iconBg }]}>
-                                {stat.icon}
-                            </View>
-                            <Text style={styles.statValue}>{stat.value}</Text>
-                            <Text style={styles.statLabel}>{stat.label}</Text>
-                        </View>
-                    ))}
-                </View>
+              <View style={styles.statsGrid}>
+    {performanceStats.map((stat, index) => (
+        <View
+            key={stat.key}
+            style={[
+                styles.statCard,
+                index === performanceStats.length - 1 && styles.statCardFull,
+            ]}
+        >
+            <View style={[styles.statIconWrap, { backgroundColor: stat.iconBg }]}>
+                {stat.icon}
+            </View>
+            <Text style={styles.statValue}>{stat.value}</Text>
+            <Text style={styles.statLabel}>{stat.label}</Text>
+        </View>
+    ))}
+</View>
 
                 {/* Current Delivery — only render if there's an active one */}
                 {currentDelivery && (
@@ -363,4 +371,7 @@ const styles = StyleSheet.create({
     activityAmount: { fontSize: 14, fontWeight: '700', color: '#2FAE60', fontFamily: 'OpenSans-Bold' },
     emptyActivity: { paddingVertical: 24, alignItems: 'center' },
     emptyActivityText: { fontSize: 13, color: '#8A8A8A', fontFamily: 'OpenSans-Regular' },
+    statCardFull: {
+    width: '100%',
+},
 })

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 const { height } = Dimensions.get('window');
-const OTP_LENGTH = 4; // change to 6 if your OTP is 6 digits
+const OTP_LENGTH = 6; // change to 6 if your OTP is 6 digits
 
 const SubmitOrderModal = ({ visible, hasArrived, onArrive, onSubmit, onClose }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;

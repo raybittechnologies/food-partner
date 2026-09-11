@@ -120,12 +120,11 @@ const EditProfile = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+    <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <AntDesign name="arrowleft" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Edit Profile</Text>
-        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
@@ -266,19 +265,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 50,
+    paddingTop: Platform.OS === 'android' ? 16 : 50,
     paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    gap: 12,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
     color: '#000',
+    fontFamily: 'OpenSans-Bold',
   },
   avatarWrapper: {
     alignSelf: 'center',
